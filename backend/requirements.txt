@@ -8,3 +8,4 @@ apscheduler
 uvicorn
 gunicorn
 python-dotenv
+asyncio
