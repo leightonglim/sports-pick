@@ -1,0 +1,8 @@
+fastapi
+databases
+sqlalchemy
+httpx
+bcrypt
+jwt
+apscheduler
+python-dotenv
