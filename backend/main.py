@@ -1575,11 +1575,11 @@ async def load_sports():
                 # Insert new sport
                 query = sports.insert().values(
                     name=sport_name,
-                    espn_id=espn_id,
                     current_season=current_season,
                     current_week=current_week,
                     link=link,
-                    display_name=display_name
+                    display_name=display_name,
+                    espn_id=espn_id
                 )
                 await database.execute(query)
                 inserted_count += 1
