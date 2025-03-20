@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { AuthContext } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { leagueService, picksService, gamesService, sportsService } from '../services/apiService';
 
 const Picks = () => {
