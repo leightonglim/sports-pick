@@ -1515,7 +1515,7 @@ async def update_sports_schedule():
     for sport in sports_list:
         try:
             # Fetch current season and week info from ESPN API
-            espn_url = f"https://site.api.espn.com/apis/site/v2/sports/{sport['espn_id']}/scoreboard"
+            espn_url = f"http://site.api.espn.com/apis/site/v2/sports/{sport['espn_id']}/scoreboard"
             
             async with httpx.AsyncClient() as client:
                 response = await client.get(espn_url)
@@ -1544,7 +1544,7 @@ async def update_sports_schedule():
                         )
         except Exception as e:
             print(f"Error updating sport {sport['name']}: {str(e)}")
-ESPN_SPORTS_API = "https://site.api.espn.com/apis/site/v2/sports"
+ESPN_SPORTS_API = "http://site.api.espn.com/apis/site/v2/sports"
 @app.post("/api/load_sports/")
 async def load_sports():
     try:
