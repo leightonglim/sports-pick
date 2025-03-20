@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { apiService } from '../services/apiService';
+import { userService, leagueService } from '../services/apiService';
 import {
   Container,
   Paper,
@@ -56,7 +56,7 @@ const Profile = () => {
 
   const fetchUserLeagues = async () => {
     try {
-      const response = await apiService.get('/leagues/user');
+      const response = await leagueService.getLeagues();
       setUserLeagues(response.data);
     } catch (error) {
       console.error('Error fetching user leagues:', error);
@@ -75,7 +75,7 @@ const Profile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await apiService.put('/users/profile', formData);
+      await userService.updateProfile(formData);
       await refreshUser();
       setEditMode(false);
       showNotification('Profile updated successfully', 'success');
@@ -100,7 +100,7 @@ const Profile = () => {
   const handleLeaveLeague = async (leagueId) => {
     if (window.confirm('Are you sure you want to leave this league?')) {
       try {
-        await apiService.delete(`/leagues/${leagueId}/leave`);
+        await leagueService.leaveLeague(leagueId);
         fetchUserLeagues();
         showNotification('Successfully left the league', 'success');
       } catch (error) {
