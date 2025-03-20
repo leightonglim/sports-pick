@@ -34,7 +34,7 @@ import {
 import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon, Person as PersonIcon, Sports as SportsIcon, ContentCopy as ContentCopyIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
-import api from '../services/api';
+import { apiService } from '../services/apiService';
 
 const LeagueManagement = () => {
   const navigate = useNavigate();
