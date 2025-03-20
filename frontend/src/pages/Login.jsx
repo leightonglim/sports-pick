@@ -45,36 +45,35 @@ const Login = () => {
     const { name, value, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: name === 'rememberMe' ? checked : value
+      [name]: name === 'rememberMe' ? checked : value,
     });
-    
-    // Clear error when user is typing
+
     if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.email || !formData.password) {
       setError('Please enter both email and password');
       return;
     }
-    
+
     setIsLoading(true);
     setError('');
-    
+
     try {
       const response = await apiService.login(formData.email, formData.password);
-      
+
       // Store the token and user info
       await login(formData.email, formData.password);
-      
+
       // Redirect to the page user was trying to access or home
       navigate(from, { replace: true });
     } catch (error) {
       console.error('Login error:', error);
+
       let errorMessage = 'Login failed. Please check your credentials.';
-      
       if (error.response?.data?.message) {
         if (error.response.data.message.includes('verify')) {
           errorMessage = 'Please verify your email address before logging in.';
@@ -82,7 +81,7 @@ const Login = () => {
           errorMessage = error.response.data.message;
         }
       }
-      
+
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -152,6 +151,7 @@ const Login = () => {
                       <IconButton
                         onClick={() => setShowPassword(!showPassword)}
                         edge="end"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
                       >
                         {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                       </IconButton>

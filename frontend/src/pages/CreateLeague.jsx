@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/apiService';
 import {
@@ -24,15 +24,31 @@ import {
   FormHelperText,
   Chip
 } from '@mui/material';
-import { 
-  SportsSoccer, 
-  SportsFootball, 
-  SportsBasketball, 
-  SportsHockey,
-  SportsBaseball,
-  Check,
-  GroupAdd
-} from '@mui/icons-material';
+
+const SportsSoccer = lazy(() => import('@mui/icons-material/SportsSoccer'));
+const SportsFootball = lazy(() => import('@mui/icons-material/SportsFootball'));
+const SportsBasketball = lazy(() => import('@mui/icons-material/SportsBasketball'));
+const SportsHockey = lazy(() => import('@mui/icons-material/SportsHockey'));
+const SportsBaseball = lazy(() => import('@mui/icons-material/SportsBaseball'));
+
+const SportChip = ({ sport, selected, onClick }) => (
+  <Chip
+    icon={getSportIcon(sport)}
+    label={sport}
+    onClick={onClick}
+    color={selected ? 'primary' : 'default'}
+    variant={selected ? 'filled' : 'outlined'}
+    sx={{
+      fontSize: '1rem',
+      py: 3,
+      px: 1,
+      '& .MuiChip-icon': {
+        mr: 0.5,
+        fontSize: '1.5rem',
+      },
+    }}
+  />
+);
 
 const CreateLeague = () => {
   const navigate = useNavigate();
@@ -57,23 +73,28 @@ const CreateLeague = () => {
     message: '',
     severity: 'success'
   });
+  const [loading, setLoading] = useState(false);
 
-  const steps = ['League Details', 'Sports Selection', 'Confirmation'];
+  const steps = [
+    'Enter League Details',
+    'Select Sports',
+    'Confirm and Create',
+  ];
 
   const validateStep = (step) => {
     const newErrors = {};
     
     if (step === 0) {
       if (!formData.name.trim()) {
-        newErrors.name = 'League name is required';
+        newErrors.name = 'League name is required.';
       }
       if (formData.isPrivate && !formData.password.trim()) {
-        newErrors.password = 'Password is required for private leagues';
+        newErrors.password = 'Password is required for private leagues.';
       }
     } else if (step === 1) {
       const hasSports = Object.values(formData.sports).some(sport => sport);
       if (!hasSports) {
-        newErrors.sports = 'Select at least one sport';
+        newErrors.sports = 'Please select at least one sport.';
       }
     }
 
@@ -110,41 +131,41 @@ const CreateLeague = () => {
   };
 
   const handleSubmit = async () => {
+    setLoading(true);
     try {
-      // Transform sports object to array of selected sports
       const selectedSports = Object.entries(formData.sports)
         .filter(([_, selected]) => selected)
         .map(([sport]) => sport);
-      
+
       const leagueData = {
         name: formData.name,
         description: formData.description,
         isPrivate: formData.isPrivate,
         password: formData.isPrivate ? formData.password : undefined,
         enableTiebreaker: formData.enableTiebreaker,
-        sports: selectedSports
+        sports: selectedSports,
       };
-      
+
       const response = await apiService.post('/leagues', leagueData);
-      
+
       setNotification({
         open: true,
         message: 'League created successfully!',
-        severity: 'success'
+        severity: 'success',
       });
-      
-      // Navigate to the new league page after a short delay
+
       setTimeout(() => {
         navigate(`/leagues/${response.data.id}`);
       }, 1500);
-      
     } catch (error) {
       console.error('Error creating league:', error);
       setNotification({
         open: true,
         message: error.response?.data?.message || 'Failed to create league',
-        severity: 'error'
+        severity: 'error',
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -241,22 +262,11 @@ const CreateLeague = () => {
               <FormHelperText>{errors.sports}</FormHelperText>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
                 {Object.keys(formData.sports).map((sport) => (
-                  <Chip
+                  <SportChip
                     key={sport}
-                    icon={getSportIcon(sport)}
-                    label={sport}
+                    sport={sport}
+                    selected={formData.sports[sport]}
                     onClick={() => handleSportChange(sport)}
-                    color={formData.sports[sport] ? "primary" : "default"}
-                    variant={formData.sports[sport] ? "filled" : "outlined"}
-                    sx={{ 
-                      fontSize: '1rem',
-                      py: 3,
-                      px: 1,
-                      '& .MuiChip-icon': { 
-                        mr: 0.5,
-                        fontSize: '1.5rem' 
-                      }
-                    }}
                   />
                 ))}
               </Box>
@@ -336,8 +346,29 @@ const CreateLeague = () => {
     }
   };
 
-  const handleCloseNotification = () => {
+  const handleCloseNotification = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
     setNotification({ ...notification, open: false });
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      isPrivate: true,
+      password: '',
+      enableTiebreaker: true,
+      sports: {
+        NFL: false,
+        NBA: false,
+        MLB: false,
+        NHL: false,
+        Soccer: false,
+      },
+    });
+    setErrors({});
   };
 
   return (
@@ -374,8 +405,9 @@ const CreateLeague = () => {
               color="primary"
               onClick={handleSubmit}
               startIcon={<Check />}
+              disabled={loading}
             >
-              Create League
+              {loading ? 'Creating...' : 'Create League'}
             </Button>
           ) : (
             <Button
@@ -386,6 +418,14 @@ const CreateLeague = () => {
               Next
             </Button>
           )}
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={resetForm}
+            sx={{ ml: 2 }}
+          >
+            Reset
+          </Button>
         </Box>
       </Paper>
 

@@ -21,6 +21,32 @@ import { format } from 'date-fns';
 import { AuthContext } from '../contexts/AuthContext';
 import { apiService } from '../services/apiService';
 
+const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+
+const useFetchData = (url, dependencies = []) => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get(url);
+        setData(response.data);
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to fetch data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, dependencies);
+
+  return { data, loading, error };
+};
+
 const Picks = () => {
   const { weekId } = useParams();
   const navigate = useNavigate();
@@ -28,7 +54,7 @@ const Picks = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [weekData, setWeekData] = useState(null);
-  const [leagues, setLeagues] = useState([]);
+  const { data: leagues, loading: leaguesLoading } = useFetchData('/leagues/user');
   const [selectedLeague, setSelectedLeague] = useState('');
   const [selectedSport, setSelectedSport] = useState('');
   const [sports, setSports] = useState([]);
@@ -50,8 +76,8 @@ const Picks = () => {
         console.error('Error fetching leagues:', error);
         setSnackbar({
           open: true,
-          message: 'Failed to load your leagues',
-          severity: 'error'
+          message: error.response?.data?.message || 'Failed to load your leagues',
+          severity: 'error',
         });
       }
     };
@@ -88,24 +114,21 @@ const Picks = () => {
         try {
           const response = await api.get(`/sports/${selectedSport}/weeks`);
           setWeeks(response.data);
-          
-          // Find current week
-          const currentWeekData = response.data.find(week => week.isCurrent);
+
+          const currentWeekData = response.data.find((week) => week.isCurrent);
           setCurrentWeek(currentWeekData);
-          
-          // If no weekId provided, use current week
-          const targetWeek = weekId || (currentWeekData ? currentWeekData.id : null);
-          
-          if (targetWeek) {
-            navigate(`/picks/${targetWeek}`, { replace: !weekId });
-            fetchWeekGames(targetWeek);
+
+          if (!weekId && currentWeekData) {
+            navigate(`/picks/${currentWeekData.id}`, { replace: true });
+          } else if (weekId) {
+            fetchWeekGames(weekId);
           }
         } catch (error) {
           console.error('Error fetching weeks:', error);
           setSnackbar({
             open: true,
             message: 'Failed to load weeks for this sport',
-            severity: 'error'
+            severity: 'error',
           });
         }
       };
@@ -209,8 +232,11 @@ const Picks = () => {
     }
   };
 
-  const handleCloseSnackbar = () => {
-    setSnackbar(prev => ({ ...prev, open: false }));
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
   if (loading) {
@@ -301,11 +327,12 @@ const Picks = () => {
             <Typography variant="h5">
               {weekData.name} Games
             </Typography>
-            <Button 
-              variant="contained" 
-              color="primary" 
+            <Button
+              variant="contained"
+              color="primary"
               onClick={handleSubmitPicks}
               disabled={submitting || !hasUnsavedChanges()}
+              size="large"
             >
               {submitting ? <CircularProgress size={24} /> : 'Save Picks'}
             </Button>
@@ -319,7 +346,7 @@ const Picks = () => {
               const gameTime = new Date(game.startTime);
               
               return (
-                <Grid item xs={12} md={6} key={game.id}>
+                <Grid item xs={12} sm={6} md={4} key={game.id}>
                   <Card 
                     variant="outlined" 
                     sx={{ 
@@ -403,9 +430,9 @@ const Picks = () => {
           </Grid>
           
           <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
-            <Button 
-              variant="contained" 
-              color="primary" 
+            <Button
+              variant="contained"
+              color="primary"
               onClick={handleSubmitPicks}
               disabled={submitting || !hasUnsavedChanges()}
               size="large"
@@ -415,6 +442,12 @@ const Picks = () => {
           </Box>
         </>
       ) : (
+        <Typography variant="body1" sx={{ textAlign: 'center', mt: 4 }}>
+          No games available for this week. Please select a different week or sport.
+        </Typography>
+      )}
+      
+      {(!weekData || weekData.games.length === 0) && (
         <Typography variant="body1" sx={{ textAlign: 'center', mt: 4 }}>
           No games available for this week. Please select a different week or sport.
         </Typography>
