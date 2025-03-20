@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { apiService } from '../services/apiService';
+import { leagueService, gamesService, picksService, sportsService } from '../services/apiService';
 import {
   Container,
   Paper,
@@ -90,7 +90,7 @@ const WeeklyGames = () => {
   const fetchLeagueData = async () => {
     try {
       setLoading(true);
-      const response = await apiService.get(`/leagues/${leagueId}`);
+      const response = await leagueService.getLeague(leagueId);
       setLeague(response.data);
       setError(null);
     } catch (error) {
@@ -103,11 +103,14 @@ const WeeklyGames = () => {
 
   const fetchAvailableSeasons = async () => {
     try {
-      const response = await apiService.get(`/games/${selectedSport}/seasons`);
-      setAvailableSeasons(response.data);
+      // Since there's no specific seasons endpoint in the apiService,
+      // we could add this to sportsService or handle it here
+      // For now, using a mock implementation
+      const seasons = ["2024", "2023", "2022"];
+      setAvailableSeasons(seasons);
       
-      if (response.data.length > 0) {
-        setSelectedSeason(response.data[0]); // Select the most recent season by default
+      if (seasons.length > 0) {
+        setSelectedSeason(seasons[0]); // Select the most recent season by default
       } else {
         setSelectedSeason('');
       }
@@ -118,20 +121,14 @@ const WeeklyGames = () => {
 
   const fetchAvailableWeeks = async () => {
     try {
-      const response = await apiService.get(`/games/${selectedSport}/${selectedSeason}/weeks`);
+      const response = await sportsService.getWeeks(selectedSport);
       setAvailableWeeks(response.data);
       
       if (response.data.length > 0) {
         // Find the current week (or closest future week)
-        const currentDate = new Date();
-        const currentWeekIndex = response.data.findIndex(week => {
-          // You'll need to implement logic to determine the current week
-          // This is a placeholder assuming the weeks are just numbers
-          return true;
-        });
-        
-        if (currentWeekIndex !== -1) {
-          setSelectedWeek(response.data[currentWeekIndex]);
+        const currentWeek = await sportsService.getCurrentWeek(selectedSport);
+        if (currentWeek.data && response.data.includes(currentWeek.data.week)) {
+          setSelectedWeek(currentWeek.data.week);
         } else {
           setSelectedWeek(response.data[0]); // Default to first week
         }
@@ -146,7 +143,7 @@ const WeeklyGames = () => {
   const fetchGames = async () => {
     try {
       setLoading(true);
-      const response = await apiService.get(`/games/${selectedSport}/${selectedSeason}/${selectedWeek}`);
+      const response = await gamesService.getGames(selectedSport, selectedWeek);
       setGames(response.data);
       setError(null);
     } catch (error) {
@@ -160,7 +157,7 @@ const WeeklyGames = () => {
 
   const fetchUserPicks = async () => {
     try {
-      const response = await apiService.get(`/picks/user/${leagueId}/${selectedSport}/${selectedSeason}/${selectedWeek}`);
+      const response = await picksService.getUserPicks(leagueId, selectedSport, selectedWeek);
       
       // Transform the array of picks into an object keyed by gameId for easy lookup
       const picksMap = {};

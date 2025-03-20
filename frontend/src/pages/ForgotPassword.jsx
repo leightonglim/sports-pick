@@ -10,7 +10,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { apiService } from '../services/apiService';
+import api from '../services/apiService';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');

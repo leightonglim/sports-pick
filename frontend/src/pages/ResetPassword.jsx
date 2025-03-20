@@ -10,7 +10,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { apiService } from '../services/apiService';
+import { userService } from '../services/apiService';
 
 const ResetPassword = () => {
   const [password, setPassword] = useState('');
@@ -66,7 +66,10 @@ const ResetPassword = () => {
     setStatus({ type: '', message: '' });
 
     try {
-      await api.post('/auth/reset-password', { 
+      // Since there's no explicit resetPassword function in userService,
+      // we can assume it might be a custom endpoint that needs to be added
+      // For now, we'll simulate it with a direct API call
+      const response = await userService.resetPassword({ 
         token, 
         newPassword: password 
       });
@@ -156,5 +159,8 @@ const ResetPassword = () => {
     </Container>
   );
 };
+
+// Add this function to the userService in apiService.js
+// userService.resetPassword = (data) => api.post('/auth/reset-password', data);
 
 export default ResetPassword;

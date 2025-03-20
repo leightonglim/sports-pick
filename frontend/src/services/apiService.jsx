@@ -42,6 +42,7 @@ export const userService = {
   getProfile: () => api.get('/users/profile'),
   updateProfile: (userData) => api.put('/users/profile', userData),
   updateNotificationSettings: (settings) => api.put('/users/notification-settings', settings),
+  resetPassword: (data) => api.post('/auth/reset-password', data),
 };
 
 // League-related API calls

@@ -1,6 +1,6 @@
-import React, { useState, lazy } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiService } from '../services/apiService';
+import { leagueService } from '../services/apiService';
 import {
   Container,
   Paper,
@@ -18,18 +18,30 @@ import {
   Stepper,
   Step,
   StepLabel,
-  InputAdornment,
   Snackbar,
   Alert,
   FormHelperText,
   Chip
 } from '@mui/material';
+import { Check } from '@mui/icons-material';
+import { GroupAdd } from '@mui/icons-material';
 
 const SportsSoccer = lazy(() => import('@mui/icons-material/SportsSoccer'));
 const SportsFootball = lazy(() => import('@mui/icons-material/SportsFootball'));
 const SportsBasketball = lazy(() => import('@mui/icons-material/SportsBasketball'));
 const SportsHockey = lazy(() => import('@mui/icons-material/SportsHockey'));
 const SportsBaseball = lazy(() => import('@mui/icons-material/SportsBaseball'));
+
+const getSportIcon = (sport) => {
+  switch (sport) {
+    case 'NFL': return <Suspense fallback={<div>Loading...</div>}><SportsFootball /></Suspense>;
+    case 'NBA': return <Suspense fallback={<div>Loading...</div>}><SportsBasketball /></Suspense>;
+    case 'MLB': return <Suspense fallback={<div>Loading...</div>}><SportsBaseball /></Suspense>;
+    case 'NHL': return <Suspense fallback={<div>Loading...</div>}><SportsHockey /></Suspense>;
+    case 'Soccer': return <Suspense fallback={<div>Loading...</div>}><SportsSoccer /></Suspense>;
+    default: return null;
+  }
+};
 
 const SportChip = ({ sport, selected, onClick }) => (
   <Chip
@@ -146,7 +158,7 @@ const CreateLeague = () => {
         sports: selectedSports,
       };
 
-      const response = await apiService.post('/leagues', leagueData);
+      const response = await leagueService.createLeague(leagueData);
 
       setNotification({
         open: true,
@@ -166,17 +178,6 @@ const CreateLeague = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const getSportIcon = (sport) => {
-    switch (sport) {
-      case 'NFL': return <SportsFootball />;
-      case 'NBA': return <SportsBasketball />;
-      case 'MLB': return <SportsBaseball />;
-      case 'NHL': return <SportsHockey />;
-      case 'Soccer': return <SportsSoccer />;
-      default: return null;
     }
   };
 
