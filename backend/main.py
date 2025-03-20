@@ -133,9 +133,11 @@ sports = sqlalchemy.Table(
     metadata,
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
     sqlalchemy.Column("name", sqlalchemy.String(50)),
-    sqlalchemy.Column("espn_id", sqlalchemy.String(50), unique=True),
+    sqlalchemy.Column("espn_id", sqlalchemy.Integer, unique=True),
     sqlalchemy.Column("current_season", sqlalchemy.String(20)),
-    sqlalchemy.Column("current_week", sqlalchemy.Integer)
+    sqlalchemy.Column("current_week", sqlalchemy.Integer),
+    sqlalchemy.Column("link", sqlalchemy.Text),
+    sqlalchemy.Column("display_name", sqlalchemy.Text)
 )
 
 league_sports = sqlalchemy.Table(
