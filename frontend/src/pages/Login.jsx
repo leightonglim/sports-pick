@@ -23,12 +23,12 @@ import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
 import SportsFootballIcon from '@mui/icons-material/SportsFootball';
 import apiService from '../services/apiService';
-import { AuthContext } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useContext(AuthContext);
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -67,7 +67,7 @@ const Login = () => {
       const response = await apiService.login(formData.email, formData.password);
       
       // Store the token and user info
-      login(response.data.token, response.data.user, formData.rememberMe);
+      await login(formData.email, formData.password);
       
       // Redirect to the page user was trying to access or home
       navigate(from, { replace: true });
