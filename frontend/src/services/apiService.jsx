@@ -1,17 +1,29 @@
-// src/services/api.js
+// src/services/apiService.js
 import axios from 'axios';
 
 const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-const apiService = axios.create({
+const api = axios.create({
   baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
+// Add request interceptor to add auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Add a response interceptor for handling token expiration
-apiService.interceptors.response.use(
+api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
@@ -23,7 +35,14 @@ apiService.interceptors.response.use(
   }
 );
 
-export default apiService;
+// User-related API calls
+export const userService = {
+  register: (userData) => api.post('/auth/register', userData),
+  login: (credentials) => api.post('/auth/login', credentials),
+  getProfile: () => api.get('/users/profile'),
+  updateProfile: (userData) => api.put('/users/profile', userData),
+  updateNotificationSettings: (settings) => api.put('/users/notification-settings', settings),
+};
 
 // League-related API calls
 export const leagueService = {
@@ -42,18 +61,18 @@ export const leagueService = {
 
 // Picks-related API calls
 export const picksService = {
-  getUserPicks: (leagueId, sportId, week) => 
-    api.get(`/picks/user`, { params: { leagueId, sportId, week } }),
-  submitPicks: (leagueId, sportId, week, picks) => 
-    api.post('/picks', { leagueId, sportId, week, picks }),
-  getPickSummary: (leagueId, sportId, week) => 
-    api.get(`/picks/summary`, { params: { leagueId, sportId, week } }),
+  getUserPicks: (leagueId, sportId, weekId) => 
+    api.get(`/picks`, { params: { leagueId, sportId, weekId } }),
+  submitPicks: (leagueId, sportId, weekId, picks) => 
+    api.post('/picks', { leagueId, sportId, weekId, picks }),
+  getPickSummary: (leagueId, sportId, weekId) => 
+    api.get(`/picks/summary`, { params: { leagueId, sportId, weekId } }),
 };
 
 // Games-related API calls
 export const gamesService = {
-  getGames: (sportId, week) => api.get(`/games`, { params: { sportId, week } }),
-  refreshGames: (sportId, week) => api.post(`/games/refresh`, { sportId, week }),
+  getGames: (sportId, weekId) => api.get(`/games`, { params: { sportId, weekId } }),
+  refreshGames: (sportId, weekId) => api.post(`/games/refresh`, { sportId, weekId }),
 };
 
 // Sports-related API calls
@@ -61,6 +80,7 @@ export const sportsService = {
   getSports: () => api.get('/sports'),
   getSport: (id) => api.get(`/sports/${id}`),
   getCurrentWeek: (sportId) => api.get(`/sports/${sportId}/current-week`),
+  getWeeks: (sportId) => api.get(`/sports/${sportId}/weeks`),
 };
 
 // Notifications-related API calls
@@ -70,3 +90,6 @@ export const notificationsService = {
   updateNotificationPreferences: (preferences) => 
     api.put('/notifications/preferences', preferences),
 };
+
+// Export the base API instance as default
+export default api;

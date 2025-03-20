@@ -19,33 +19,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { AuthContext } from '../contexts/AuthContext';
-import { apiService } from '../services/apiService';
-
-const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
-
-const useFetchData = (url, dependencies = []) => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await apiService.get(url);
-        setData(response.data);
-      } catch (err) {
-        setError(err.response?.data?.message || 'Failed to fetch data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, dependencies);
-
-  return { data, loading, error };
-};
+import { leagueService, picksService, gamesService, sportsService } from '../services/apiService';
 
 const Picks = () => {
   const { weekId } = useParams();
@@ -54,7 +28,8 @@ const Picks = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [weekData, setWeekData] = useState(null);
-  const { data: leagues, loading: leaguesLoading } = useFetchData('/leagues/user');
+  const [leagues, setLeagues] = useState([]);
+  const [leaguesLoading, setLeaguesLoading] = useState(true);
   const [selectedLeague, setSelectedLeague] = useState('');
   const [selectedSport, setSelectedSport] = useState('');
   const [sports, setSports] = useState([]);
@@ -64,10 +39,12 @@ const Picks = () => {
   const [savedPicks, setSavedPicks] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
 
+  // Fetch user leagues
   useEffect(() => {
     const fetchUserLeagues = async () => {
       try {
-        const response = await apiService.get('/leagues/user');
+        setLeaguesLoading(true);
+        const response = await leagueService.getLeagues();
         setLeagues(response.data);
         if (response.data.length > 0) {
           setSelectedLeague(response.data[0].id);
@@ -79,20 +56,23 @@ const Picks = () => {
           message: error.response?.data?.message || 'Failed to load your leagues',
           severity: 'error',
         });
+      } finally {
+        setLeaguesLoading(false);
       }
     };
 
     fetchUserLeagues();
   }, []);
 
+  // Fetch league sports when selected league changes
   useEffect(() => {
     if (selectedLeague) {
       const fetchLeagueSports = async () => {
         try {
-          const response = await apiService.get(`/leagues/${selectedLeague}/sports`);
-          setSports(response.data);
-          if (response.data.length > 0) {
-            setSelectedSport(response.data[0].id);
+          const response = await leagueService.getLeague(selectedLeague);
+          setSports(response.data.sports || []);
+          if (response.data.sports && response.data.sports.length > 0) {
+            setSelectedSport(response.data.sports[0].id);
           }
         } catch (error) {
           console.error('Error fetching sports:', error);
@@ -108,18 +88,19 @@ const Picks = () => {
     }
   }, [selectedLeague]);
 
+  // Fetch weeks when selected sport changes
   useEffect(() => {
     if (selectedSport) {
       const fetchWeeks = async () => {
         try {
-          const response = await apiService.get(`/sports/${selectedSport}/weeks`);
-          setWeeks(response.data);
+          const response = await sportsService.getSport(selectedSport);
+          setWeeks(response.data.weeks || []);
 
-          const currentWeekData = response.data.find((week) => week.isCurrent);
-          setCurrentWeek(currentWeekData);
+          const currentWeekResponse = await sportsService.getCurrentWeek(selectedSport);
+          setCurrentWeek(currentWeekResponse.data);
 
-          if (!weekId && currentWeekData) {
-            navigate(`/picks/${currentWeekData.id}`, { replace: true });
+          if (!weekId && currentWeekResponse.data) {
+            navigate(`/picks/${currentWeekResponse.data.id}`, { replace: true });
           } else if (weekId) {
             fetchWeekGames(weekId);
           }
@@ -142,18 +123,24 @@ const Picks = () => {
     
     setLoading(true);
     try {
-      const [gamesResponse, picksResponse] = await Promise.all([
-        apiService.get(`/sports/${selectedSport}/weeks/${weekId}/games`),
-        apiService.get(`/leagues/${selectedLeague}/sports/${selectedSport}/weeks/${weekId}/picks`)
-      ]);
-
-      setWeekData(gamesResponse.data);
+      // Get games for the week
+      const gamesResponse = await gamesService.getGames(selectedSport, weekId);
+      
+      // Get user's picks
+      const picksResponse = await picksService.getUserPicks(selectedLeague, selectedSport, weekId);
+      
+      setWeekData({
+        ...gamesResponse.data,
+        games: gamesResponse.data.games || []
+      });
       
       // Convert user picks to the required format
       const userPicks = {};
-      picksResponse.data.forEach(pick => {
-        userPicks[pick.gameId] = pick.teamId;
-      });
+      if (picksResponse.data && Array.isArray(picksResponse.data)) {
+        picksResponse.data.forEach(pick => {
+          userPicks[pick.gameId] = pick.teamId;
+        });
+      }
       
       setPicks(userPicks);
       setSavedPicks({...userPicks});
@@ -210,9 +197,12 @@ const Picks = () => {
         return;
       }
       
-      await apiService.post(`/leagues/${selectedLeague}/sports/${selectedSport}/weeks/${weekId || currentWeek.id}/picks`, {
-        picks: picksToSubmit
-      });
+      await picksService.submitPicks(
+        selectedLeague, 
+        selectedSport, 
+        weekId || (currentWeek ? currentWeek.id : null), 
+        picksToSubmit
+      );
       
       setSavedPicks({...picks});
       setSnackbar({
@@ -224,7 +214,7 @@ const Picks = () => {
       console.error('Error submitting picks:', error);
       setSnackbar({
         open: true,
-        message: 'Failed to submit picks',
+        message: error.response?.data?.message || 'Failed to submit picks',
         severity: 'error'
       });
     } finally {
@@ -274,6 +264,7 @@ const Picks = () => {
               value={selectedLeague}
               onChange={handleLeagueChange}
               label="League"
+              disabled={leaguesLoading}
             >
               {leagues.map(league => (
                 <MenuItem key={league.id} value={league.id}>
@@ -291,7 +282,7 @@ const Picks = () => {
               value={selectedSport}
               onChange={handleSportChange}
               label="Sport"
-              disabled={!selectedLeague}
+              disabled={!selectedLeague || sports.length === 0}
             >
               {sports.map(sport => (
                 <MenuItem key={sport.id} value={sport.id}>
@@ -309,7 +300,7 @@ const Picks = () => {
               value={weekId || (currentWeek ? currentWeek.id : '')}
               onChange={(e) => handleWeekChange(e.target.value)}
               label="Week"
-              disabled={!selectedSport}
+              disabled={!selectedSport || weeks.length === 0}
             >
               {weeks.map(week => (
                 <MenuItem key={week.id} value={week.id}>
@@ -442,12 +433,6 @@ const Picks = () => {
           </Box>
         </>
       ) : (
-        <Typography variant="body1" sx={{ textAlign: 'center', mt: 4 }}>
-          No games available for this week. Please select a different week or sport.
-        </Typography>
-      )}
-      
-      {(!weekData || weekData.games.length === 0) && (
         <Typography variant="body1" sx={{ textAlign: 'center', mt: 4 }}>
           No games available for this week. Please select a different week or sport.
         </Typography>
