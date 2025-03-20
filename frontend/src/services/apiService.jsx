@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-const api = axios.create({
+const apiService = axios.create({
   baseURL,
   headers: {
     'Content-Type': 'application/json',
@@ -11,7 +11,7 @@ const api = axios.create({
 });
 
 // Add a response interceptor for handling token expiration
-api.interceptors.response.use(
+apiService.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
@@ -23,7 +23,7 @@ api.interceptors.response.use(
   }
 );
 
-export default api;
+export default apiService;
 
 // League-related API calls
 export const leagueService = {
