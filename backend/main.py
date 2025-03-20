@@ -1556,32 +1556,33 @@ async def load_sports():
         inserted_count = 0
         for sport in sports_data.get("activeLeagues", []):
             sport_name = sport.get("league")
-            espn_id = sport.get("sportId")
-            link = sport.get("link").get("href")
-            display_name = sport.get("displayName")
-            current_season = None  # Modify if API provides this
-            current_week = None  # Modify if API provides this
-            
-            if not sport_name or not espn_id:
-                continue
-
-            # Check if sport already exists
-            query = sports.select().where(sports.c.espn_id == espn_id)
-            existing_sport = await database.fetch_one(query)
-            if existing_sport:
-                continue
-
-            # Insert new sport
-            query = sports.insert().values(
-                name=sport_name,
-                espn_id=espn_id,
-                current_season=current_season,
-                current_week=current_week,
-                link=link,
-                display_name=display_name
-            )
-            await database.execute(query)
-            inserted_count += 1
+            if sport_name != "topEvents":
+                espn_id = sport.get("sportId")
+                link = sport.get("link").get("href")
+                display_name = sport.get("displayName")
+                current_season = None  # Modify if API provides this
+                current_week = None  # Modify if API provides this
+                
+                if not sport_name or not espn_id:
+                    continue
+    
+                # Check if sport already exists
+                query = sports.select().where(sports.c.espn_id == espn_id)
+                existing_sport = await database.fetch_one(query)
+                if existing_sport:
+                    continue
+    
+                # Insert new sport
+                query = sports.insert().values(
+                    name=sport_name,
+                    espn_id=espn_id,
+                    current_season=current_season,
+                    current_week=current_week,
+                    link=link,
+                    display_name=display_name
+                )
+                await database.execute(query)
+                inserted_count += 1
         
         return {"message": f"Inserted {inserted_count} sports successfully."}
 
