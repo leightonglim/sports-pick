@@ -19,6 +19,7 @@ from email.mime.multipart import MIMEMultipart
 import smtplib
 from dotenv import load_dotenv
 import uvicorn
+import requests
 
 # Load environment variables
 load_dotenv()
