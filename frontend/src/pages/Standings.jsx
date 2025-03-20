@@ -22,7 +22,7 @@ import {
   useTheme 
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import { apiService } from '../services/apiService';
 
 const Standings = () => {
   const { leagueId } = useParams();
