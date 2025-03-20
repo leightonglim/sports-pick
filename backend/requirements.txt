@@ -13,3 +13,4 @@ pydantic
 asyncpg
 pydantic[email]
 python-multipart
+requests
