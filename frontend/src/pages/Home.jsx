@@ -21,7 +21,7 @@ import SportsHockeyIcon from '@mui/icons-material/SportsHockey';
 import SportsBasketballIcon from '@mui/icons-material/SportsBasketball';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useAuth } from '../contexts/AuthContext';
-import { leagueService, sportsService, picksService } from '../services/api';
+import { leagueService, sportsService, picksService } from '../services/apiService';
 
 const sportIcons = {
   NFL: <DirectionsRunIcon />,
