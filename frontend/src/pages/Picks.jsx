@@ -32,7 +32,7 @@ const useFetchData = (url, dependencies = []) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await api.get(url);
+        const response = await apiService.get(url);
         setData(response.data);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch data');
@@ -67,7 +67,7 @@ const Picks = () => {
   useEffect(() => {
     const fetchUserLeagues = async () => {
       try {
-        const response = await api.get('/leagues/user');
+        const response = await apiService.get('/leagues/user');
         setLeagues(response.data);
         if (response.data.length > 0) {
           setSelectedLeague(response.data[0].id);
@@ -89,7 +89,7 @@ const Picks = () => {
     if (selectedLeague) {
       const fetchLeagueSports = async () => {
         try {
-          const response = await api.get(`/leagues/${selectedLeague}/sports`);
+          const response = await apiService.get(`/leagues/${selectedLeague}/sports`);
           setSports(response.data);
           if (response.data.length > 0) {
             setSelectedSport(response.data[0].id);
@@ -112,7 +112,7 @@ const Picks = () => {
     if (selectedSport) {
       const fetchWeeks = async () => {
         try {
-          const response = await api.get(`/sports/${selectedSport}/weeks`);
+          const response = await apiService.get(`/sports/${selectedSport}/weeks`);
           setWeeks(response.data);
 
           const currentWeekData = response.data.find((week) => week.isCurrent);
@@ -143,8 +143,8 @@ const Picks = () => {
     setLoading(true);
     try {
       const [gamesResponse, picksResponse] = await Promise.all([
-        api.get(`/sports/${selectedSport}/weeks/${weekId}/games`),
-        api.get(`/leagues/${selectedLeague}/sports/${selectedSport}/weeks/${weekId}/picks`)
+        apiService.get(`/sports/${selectedSport}/weeks/${weekId}/games`),
+        apiService.get(`/leagues/${selectedLeague}/sports/${selectedSport}/weeks/${weekId}/picks`)
       ]);
 
       setWeekData(gamesResponse.data);
@@ -210,7 +210,7 @@ const Picks = () => {
         return;
       }
       
-      await api.post(`/leagues/${selectedLeague}/sports/${selectedSport}/weeks/${weekId || currentWeek.id}/picks`, {
+      await apiService.post(`/leagues/${selectedLeague}/sports/${selectedSport}/weeks/${weekId || currentWeek.id}/picks`, {
         picks: picksToSubmit
       });
       
