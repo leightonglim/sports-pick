@@ -1544,7 +1544,7 @@ async def update_sports_schedule():
                         )
         except Exception as e:
             print(f"Error updating sport {sport['name']}: {str(e)}")
-ESPN_SPORTS_API = "http://site.api.espn.com/apis/site/v2/sports"
+ESPN_SPORTS_API = "https://site.api.espn.com/apis/site/v2/scoreboard/activeSports?v=1&editionKey=espn-en&lang=en&region=us"
 @app.post("/api/load_sports/")
 async def load_sports():
     try:
@@ -1554,9 +1554,11 @@ async def load_sports():
         sports_data = response.json()
 
         inserted_count = 0
-        for sport in sports_data.get("sports", []):
-            sport_name = sport.get("name")
-            espn_id = sport.get("id")
+        for sport in sports_data.get("activeLeagues", []):
+            sport_name = sport.get("league")
+            espn_id = sport.get("sportId")
+            link = sport.get("link").get("href")
+            display_name = sport.get("displayName")
             current_season = None  # Modify if API provides this
             current_week = None  # Modify if API provides this
             
@@ -1575,6 +1577,8 @@ async def load_sports():
                 espn_id=espn_id,
                 current_season=current_season,
                 current_week=current_week,
+                link=link,
+                display_name=display_name
             )
             await database.execute(query)
             inserted_count += 1
