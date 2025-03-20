@@ -1,6 +1,6 @@
-// src/contexts/AuthContext.js
+// src/contexts/AuthContext.jsx
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { apiService } from '../services/apiService';
+import api, { userService } from '../services/apiService';
 
 const AuthContext = createContext();
 
@@ -16,14 +16,13 @@ export const AuthProvider = ({ children }) => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
-          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          const response = await api.get('/users/me');
+          // The token will be added by the request interceptor
+          const response = await userService.getProfile();
           setCurrentUser(response.data);
         }
       } catch (err) {
         console.error('Auth check failed:', err);
         localStorage.removeItem('token');
-        delete api.defaults.headers.common['Authorization'];
       } finally {
         setLoading(false);
       }
@@ -35,11 +34,10 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setError(null);
-      const response = await api.post('/auth/login', { email, password });
+      const response = await userService.login({ email, password });
       const { token, user } = response.data;
       
       localStorage.setItem('token', token);
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setCurrentUser(user);
       return user;
     } catch (err) {
@@ -51,11 +49,10 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setError(null);
-      const response = await api.post('/users', userData);
+      const response = await userService.register(userData);
       const { token, user } = response.data;
       
       localStorage.setItem('token', token);
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setCurrentUser(user);
       return user;
     } catch (err) {
@@ -66,14 +63,13 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
-    delete api.defaults.headers.common['Authorization'];
     setCurrentUser(null);
   };
 
   const updateProfile = async (userData) => {
     try {
       setError(null);
-      const response = await api.put('/users/me', userData);
+      const response = await userService.updateProfile(userData);
       setCurrentUser(response.data);
       return response.data;
     } catch (err) {
