@@ -11,3 +11,4 @@ python-dotenv
 asyncio
 pydantic
 asyncpg
+pydantic[email]
