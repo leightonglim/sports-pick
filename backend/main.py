@@ -1543,6 +1543,47 @@ async def update_sports_schedule():
                         )
         except Exception as e:
             print(f"Error updating sport {sport['name']}: {str(e)}")
+ESPN_SPORTS_API = "https://site.api.espn.com/apis/site/v2/sports"
+@app.post("/api/load_sports/")
+async def load_sports():
+    try:
+        # Fetch sports data from ESPN API
+        response = requests.get(ESPN_SPORTS_API)
+        response.raise_for_status()
+        sports_data = response.json()
+
+        inserted_count = 0
+        for sport in sports_data.get("sports", []):
+            sport_name = sport.get("name")
+            espn_id = sport.get("id")
+            current_season = None  # Modify if API provides this
+            current_week = None  # Modify if API provides this
+            
+            if not sport_name or not espn_id:
+                continue
+
+            # Check if sport already exists
+            query = sports.select().where(sports.c.espn_id == espn_id)
+            existing_sport = await database.fetch_one(query)
+            if existing_sport:
+                continue
+
+            # Insert new sport
+            query = sports.insert().values(
+                name=sport_name,
+                espn_id=espn_id,
+                current_season=current_season,
+                current_week=current_week,
+            )
+            await database.execute(query)
+            inserted_count += 1
+        
+        return {"message": f"Inserted {inserted_count} sports successfully."}
+
+    except requests.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"ESPN API request failed: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 # Add to scheduler
 scheduler.add_job(lambda: asyncio.run(update_sports_schedule()), 'interval', hours=12)
