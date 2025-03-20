@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext.jsx';
 
 // Layouts
 import Layout from './components/Layout';
@@ -12,9 +12,9 @@ import Layout from './components/Layout';
 import Login from './pages/Login.jsx';
 import Registration from './pages/Registration.jsx';
 import EmailVerification from './pages/EmailVerification.jsx';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import LandingPage from './pages/LandingPage';
+import ForgotPassword from './pages/ForgotPassword.jsx';
+import ResetPassword from './pages/ResetPassword.jsx';
+import LandingPage from './pages/LandingPage.jsx';
 
 // Protected Pages
 import Home from './pages/Home.jsx';
@@ -29,7 +29,7 @@ import WeeklyGames from './pages/WeeklyGames.jsx';
 import NotificationSettings from './pages/NotificationSettings.jsx';
 
 // Protected Route Component
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 const App = () => {
   return (
