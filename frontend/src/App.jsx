@@ -19,7 +19,6 @@ import LandingPage from './pages/LandingPage.jsx';
 // Protected Pages
 import Home from './pages/Home.jsx';
 import Picks from './pages/Picks.jsx';
-import LeagueLeaderboard from './pages/LeagueLeaderboard.jsx';
 import Standings from './pages/Standings.jsx';
 import Profile from './pages/Profile.jsx';
 import CreateLeague from './pages/CreateLeague.jsx';
@@ -52,7 +51,7 @@ const App = () => {
               <Route path="/picks" element={<Picks />} />
               <Route path="/picks/:leagueId/:sport/:week" element={<Picks />} />
               <Route path="/past-picks" element={<PastPicks />} />
-              <Route path="/leagues/:leagueId/leaderboard" element={<LeagueLeaderboard />} />
+              <Route path="/leagues/:leagueId/leaderboard" element={<Standings />} />
               <Route path="/leagues/:leagueId/manage" element={<Standings />} />
               <Route path="/leagues/create" element={<CreateLeague />} />
               <Route path="/leagues/join" element={<LeagueJoin />} />
