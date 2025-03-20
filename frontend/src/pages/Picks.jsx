@@ -19,7 +19,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { AuthContext } from '../contexts/AuthContext';
-import api from '../services/api';
+import { apiService } from '../services/apiService';
 
 const Picks = () => {
   const { weekId } = useParams();
