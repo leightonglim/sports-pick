@@ -3,7 +3,7 @@ databases
 sqlalchemy
 httpx
 bcrypt
-jwt
+PyJWT
 apscheduler
 uvicorn
 gunicorn
