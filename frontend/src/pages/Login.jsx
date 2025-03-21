@@ -33,7 +33,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: '',
     rememberMe: false
   });
@@ -54,8 +54,8 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.email || !formData.password) {
-      setError('Please enter both email and password');
+    if (!formData.username || !formData.password) {
+      setError('Please enter both username and password');
       return;
     }
 
@@ -64,7 +64,7 @@ const Login = () => {
 
     try {
       // Use the login method from AuthContext which should handle both API call and state management
-      await login(formData.email, formData.password, formData.rememberMe);
+      await login(formData.username, formData.password, formData.rememberMe);
       
       // Redirect to the page user was trying to access or home
       navigate(from, { replace: true });
@@ -117,9 +117,9 @@ const Login = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Email Address or Username"
-                name="email"
-                value={formData.email}
+                label="Username or Email"
+                name="username"
+                value={formData.username}
                 onChange={handleInputChange}
                 InputProps={{
                   startAdornment: (

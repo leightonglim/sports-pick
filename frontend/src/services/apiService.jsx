@@ -38,7 +38,7 @@ api.interceptors.response.use(
 // User-related API calls
 export const userService = {
   register: (userData) => api.post('/auth/register', userData),
-  login: (credentials) => api.post('/auth/login', credentials),
+  login: (username, password) => api.post('/auth/login', { username, password }),
   getProfile: () => api.get('/users/profile'),
   updateProfile: (userData) => api.put('/users/profile', userData),
   updateNotificationSettings: (settings) => api.put('/users/notification-settings', settings),

@@ -45,20 +45,30 @@ export const AuthProvider = ({ children, themeMode = { useDarkTheme: false, setU
     }
   }, [themeMode?.useDarkTheme]);
 
-  const login = async (email, password) => {
-    try {
-      setError(null);
-      const response = await userService.login({ email, password });
-      const { token, user } = response.data;
-      
+// Example updated AuthContext.js login method
+// Your file may be different, so adapt as needed
+const login = async (username, password, rememberMe = false) => {
+  try {
+    const response = await userService.login(username, password);
+    
+    const token = response.data.token; // Adjust based on your API response structure
+    
+    // Store token using the appropriate method
+    if (rememberMe) {
       localStorage.setItem('token', token);
-      setCurrentUser(user);
-      return user;
-    } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
-      throw err;
+    } else {
+      sessionStorage.setItem('token', token);
     }
-  };
+    
+    // Set auth state
+    setUser(response.data.user); // Adjust based on your API response structure
+    setIsAuthenticated(true);
+    
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
 
   const register = async (userData) => {
     try {
