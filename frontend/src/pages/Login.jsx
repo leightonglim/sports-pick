@@ -22,7 +22,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
 import SportsFootballIcon from '@mui/icons-material/SportsFootball';
-import apiService from '../services/apiService';
+import apiService, { userService } from '../services/apiService';
 import { useAuth } from '../contexts/AuthContext';
 
 const Login = () => {
@@ -63,7 +63,7 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await apiService.login(formData.email, formData.password);
+      const response = await userService.login(formData.email, formData.password);
 
       // Store the token and user info
       await login(formData.email, formData.password);
