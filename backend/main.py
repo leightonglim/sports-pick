@@ -13,7 +13,7 @@ import bcrypt
 import uuid
 import httpx
 import os
-from apscheduler.schedulers.background import BackgroundScheduler
+# from apscheduler.schedulers.background import BackgroundScheduler
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import smtplib
@@ -45,10 +45,10 @@ EMAIL_FROM = os.getenv("EMAIL_FROM", "noreply@sportspickem.com")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.connect()
-    scheduler.start()
+    # scheduler.start()
     yield
     await database.disconnect()
-    scheduler.shutdown()
+    # scheduler.shutdown()
     
 # FastAPI app
 app = FastAPI(title="Sports Pick'em API", lifespan=lifespan)
@@ -547,9 +547,9 @@ async def schedule_pick_reminders():
                         )
 
 # Initialize scheduler
-scheduler = BackgroundScheduler()
-scheduler.add_job(lambda: asyncio.run(process_email_notifications()), 'interval', minutes=10)
-scheduler.add_job(lambda: asyncio.run(schedule_pick_reminders()), 'interval', hours=6)
+# scheduler = BackgroundScheduler()
+# scheduler.add_job(lambda: asyncio.run(process_email_notifications()), 'interval', minutes=10)
+# scheduler.add_job(lambda: asyncio.run(schedule_pick_reminders()), 'interval', hours=6)
 
 # Authentication endpoints
 @app.post("/token")
@@ -1593,7 +1593,7 @@ async def load_sports():
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 # Add to scheduler
-scheduler.add_job(lambda: asyncio.run(update_sports_schedule()), 'interval', hours=12)
+# scheduler.add_job(lambda: asyncio.run(update_sports_schedule()), 'interval', hours=12)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080, timeout_keep_alive=120)
