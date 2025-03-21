@@ -24,7 +24,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import PersonIcon from '@mui/icons-material/Person';
 import LockIcon from '@mui/icons-material/Lock';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import apiService from '../services/apiService';
+import { userService } from '../services/apiService';
 
 const Registration = () => {
   const navigate = useNavigate();
@@ -146,7 +146,7 @@ const Registration = () => {
     
     try {
       const { confirmPassword, ...registrationData } = formData;
-      await apiService.register(registrationData);
+      await userService.register(registrationData);
       setActiveStep(3); // Move to success step
     } catch (error) {
       console.error('Registration error:', error);
