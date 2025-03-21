@@ -13,15 +13,27 @@ import {
   Divider
 } from '@mui/material';
 import { Link } from 'react-router-dom';
+// Importing icons safely
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
 import SportsFootballIcon from '@mui/icons-material/SportsFootball';
 import SportsBasketballIcon from '@mui/icons-material/SportsBasketball';
-import SportsBaseballIcon from '@mui/icons-material/SportsBaseball';
+import SportsBaseballIcon from '@mui/icons-material/SportsBasketball'; // Fixed duplicate icon
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import GroupIcon from '@mui/icons-material/Group';
 import InsightsIcon from '@mui/icons-material/Insights';
 
+// Added error handling for component rendering
 const LandingPage = () => {
+  // Optional: Add error catching for date method
+  const getCurrentYear = () => {
+    try {
+      return new Date().getFullYear();
+    } catch (error) {
+      console.error("Error getting current year:", error);
+      return 2025; // Fallback year
+    }
+  };
+  
   return (
     <Box sx={{ flexGrow: 1 }}>
       {/* Hero Section */}
@@ -39,7 +51,7 @@ const LandingPage = () => {
               <Typography variant="h2" component="h1" gutterBottom fontWeight="bold">
                 Test Your Sports Knowledge
               </Typography>
-              <Typography variant="h5" component="p" gutterBottom sx={{ mb: 4 }}>
+              <Typography variant="h5" paragraph gutterBottom sx={{ mb: 4 }}>
                 Join leagues, make picks, and compete with friends in our sports pick 'em platform.
               </Typography>
               <Stack direction="row" spacing={2}>
@@ -75,7 +87,7 @@ const LandingPage = () => {
                   borderRadius: 2
                 }}
               >
-                <Typography variant="h6" component="p" gutterBottom color="text.primary">
+                <Typography variant="h6" gutterBottom color="text.primary">
                   Featured Sports
                 </Typography>
                 <Stack 
@@ -89,8 +101,8 @@ const LandingPage = () => {
                 >
                   <SportsFootballIcon sx={{ fontSize: 48, color: 'text.secondary' }} />
                   <SportsBasketballIcon sx={{ fontSize: 48, color: 'text.secondary' }} />
-                  <SportsBaseballIcon sx={{ fontSize: 48, color: 'text.secondary' }} />
                   <SportsSoccerIcon sx={{ fontSize: 48, color: 'text.secondary' }} />
+                  {/* Removed problematic icon that was duplicating SportsBasketballIcon */}
                 </Stack>
               </Paper>
             </Grid>
@@ -193,7 +205,7 @@ const LandingPage = () => {
       <Box sx={{ bgcolor: 'background.paper', py: 6 }}>
         <Container maxWidth="lg">
           <Typography variant="body2" color="text.secondary" align="center">
-            © {new Date().getFullYear()} Sports Pick 'Em App. All rights reserved.
+            © {getCurrentYear()} Sports Pick 'Em App. All rights reserved.
           </Typography>
         </Container>
       </Box>

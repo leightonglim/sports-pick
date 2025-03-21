@@ -3,24 +3,42 @@ import { Box, Typography, Button, Container, Paper } from '@mui/material';
 import { ErrorOutline } from '@mui/icons-material';
 
 /**
- * Error Boundary component to catch JavaScript errors in child components
- * and display a fallback UI instead of crashing the whole app
+ * Enhanced Error Boundary component to catch JavaScript errors in child components
+ * and display a fallback UI with improved error reporting
  */
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
+    this.state = { 
+      hasError: false, 
+      error: null, 
+      errorInfo: null,
+      errorStack: null
+    };
   }
 
   static getDerivedStateFromError(error) {
     // Update state so the next render will show the fallback UI
-    return { hasError: true, error };
+    return { 
+      hasError: true, 
+      error,
+      errorStack: error.stack 
+    };
   }
 
   componentDidCatch(error, errorInfo) {
-    // You can log the error to an error reporting service here
-    console.error("Uncaught error:", error, errorInfo);
-    this.setState({ errorInfo });
+    // Log the error to console with more details
+    console.error("Uncaught error:", error);
+    console.error("Component stack:", errorInfo.componentStack);
+    
+    // Save error details to state for display
+    this.setState({ 
+      errorInfo,
+      errorStack: error.stack
+    });
+    
+    // If you have error monitoring services like Sentry, you would log here
+    // Example: logErrorToService(error, errorInfo);
   }
 
   handleReload = () => {
@@ -29,6 +47,16 @@ class ErrorBoundary extends React.Component {
 
   handleGoHome = () => {
     window.location.href = '/';
+  }
+
+  // Helper to format component stack for better readability
+  formatComponentStack(componentStack) {
+    if (!componentStack) return "No component stack available";
+    
+    return componentStack
+      .split('\n')
+      .filter(line => line.trim().length > 0)
+      .map((line, i) => <div key={i}>{line.trim()}</div>);
   }
 
   render() {
@@ -55,13 +83,36 @@ class ErrorBoundary extends React.Component {
               We're sorry, an unexpected error has occurred. Our team has been notified.
             </Typography>
             
-            {process.env.NODE_ENV !== 'production' && this.state.error && (
+            {/* Always show basic error message - works in both production and development */}
+            <Box sx={{ my: 3, textAlign: 'left', bgcolor: 'grey.100', p: 2, borderRadius: 1 }}>
+              <Typography variant="overline" display="block" gutterBottom>
+                Error Message:
+              </Typography>
+              <Typography variant="body2" component="pre" sx={{ overflow: 'auto' }}>
+                {this.state.error ? this.state.error.toString() : "Unknown error"}
+              </Typography>
+            </Box>
+            
+            {/* Show component stack trace - valuable in production too */}
+            {this.state.errorInfo && (
               <Box sx={{ my: 3, textAlign: 'left', bgcolor: 'grey.100', p: 2, borderRadius: 1 }}>
                 <Typography variant="overline" display="block" gutterBottom>
-                  Error Details:
+                  Component Stack:
                 </Typography>
-                <Typography variant="body2" component="pre" sx={{ overflow: 'auto' }}>
-                  {this.state.error.toString()}
+                <Typography variant="body2" component="pre" sx={{ overflow: 'auto', fontSize: '0.75rem' }}>
+                  {this.formatComponentStack(this.state.errorInfo.componentStack)}
+                </Typography>
+              </Box>
+            )}
+            
+            {/* Show error stack - helpful for debugging */}
+            {this.state.errorStack && (
+              <Box sx={{ my: 3, textAlign: 'left', bgcolor: 'grey.100', p: 2, borderRadius: 1 }}>
+                <Typography variant="overline" display="block" gutterBottom>
+                  Error Stack:
+                </Typography>
+                <Typography variant="body2" component="pre" sx={{ overflow: 'auto', fontSize: '0.75rem' }}>
+                  {this.state.errorStack}
                 </Typography>
               </Box>
             )}
