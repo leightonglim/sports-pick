@@ -8,7 +8,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 import databases
 import sqlalchemy
-import PyJWT as jwt
+import jwt
 import bcrypt
 import uuid
 import httpx
