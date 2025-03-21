@@ -6,7 +6,7 @@ const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
-export const AuthProvider = ({ children, themeMode }) => {
+export const AuthProvider = ({ children, themeMode = { useDarkTheme: false, setUseDarkTheme: () => {} } }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -77,8 +77,9 @@ export const AuthProvider = ({ children, themeMode }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('theme'); // Optional, if resetting theme on logout
     setCurrentUser(null);
-  };
+  };  
 
   const updateProfile = async (userData) => {
     try {

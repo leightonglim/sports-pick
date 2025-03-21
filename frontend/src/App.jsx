@@ -57,59 +57,59 @@ const App = () => {
         <CssBaseline />
         <AuthProvider themeMode={{ useDarkTheme, toggleTheme }}>
           <Router>
-            <Suspense fallback={<LoadingScreen />}>
+            {/* <Suspense fallback={<LoadingScreen />}> */}
               <Routes>
                 {/* 
                   Public Routes
                   These routes are accessible without authentication
                 */}
                 <Route path="/" element={<LandingPage />} />
-                <Route path="/login" element={<Login />} />
+                {/* <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Registration />} />
                 <Route path="/verify-email/:token" element={<EmailVerification />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password/:token" element={<ResetPassword />} />
-                
+                 */}
                 {/* 
                   Protected Routes with Layout
                   All routes below require authentication and use the standard Layout
                 */}
-                <Route element={
+                {/* <Route element={
                   <ProtectedRoute>
                     <Layout />
                   </ProtectedRoute>
-                }>
+                }> */}
                   {/* Dashboard Routes */}
-                  <Route path="/dashboard" element={<Home />} />
+                  {/* <Route path="/dashboard" element={<Home />} /> */}
                   
                   {/* Picks Routes */}
-                  <Route path="/picks" element={<Picks />} />
+                  {/* <Route path="/picks" element={<Picks />} />
                   <Route path="/picks/:leagueId/:sport/:week" element={<Picks />} />
                   <Route path="/past-picks" element={<PastPicks />} />
                   <Route path="/games/:sport/:week" element={<WeeklyGames />} />
-                  
+                   */}
                   {/* League Routes */}
-                  <Route path="/leagues/:leagueId/leaderboard" element={<Standings />} />
+                  {/* <Route path="/leagues/:leagueId/leaderboard" element={<Standings />} />
                   <Route path="/leagues/:leagueId/manage" element={<Standings />} />
                   <Route path="/leagues/create" element={<CreateLeague />} />
                   <Route path="/leagues/join" element={<LeagueJoin />} />
-                  
+                   */}
                   {/* User Settings Routes */}
-                  <Route path="/profile" element={<Profile />} />
+                  {/* <Route path="/profile" element={<Profile />} />
                   <Route path="/notifications" element={<NotificationSettings />} />
-                </Route>
+                </Route> */}
                 
                 {/* Redirect /home to /dashboard */}
-                <Route path="/home" element={<Navigate to="/dashboard" replace />} />
+                {/* <Route path="/home" element={<Navigate to="/dashboard" replace />} /> */}
                 
                 {/* Catch-all redirect to dashboard when logged in, otherwise to landing page */}
-                <Route path="*" element={
+                {/* <Route path="*" element={
                   <ProtectedRoute>
                     <Navigate to="/dashboard" replace />
                   </ProtectedRoute>
-                } />
+                } /> */}
               </Routes>
-            </Suspense>
+            {/* </Suspense> */}
           </Router>
         </AuthProvider>
       </ThemeProvider>

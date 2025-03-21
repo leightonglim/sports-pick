@@ -30,7 +30,7 @@ class ErrorBoundary extends React.Component {
     // Log the error to console with more details
     console.error("Uncaught error:", error);
     console.error("Component stack:", errorInfo.componentStack);
-    
+    console.log(process.env.REACT_APP_API_URL)
     // Save error details to state for display
     this.setState({ 
       errorInfo,
