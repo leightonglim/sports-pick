@@ -20,6 +20,7 @@ import smtplib
 from dotenv import load_dotenv
 import uvicorn
 import requests
+from contextlib import asynccontextmanager
 
 # Load environment variables
 load_dotenv()
@@ -40,8 +41,17 @@ EMAIL_USERNAME = os.getenv("EMAIL_USERNAME")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 EMAIL_FROM = os.getenv("EMAIL_FROM", "noreply@sportspickem.com")
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await database.connect()
+    scheduler.start()
+    yield
+    await database.disconnect()
+    scheduler.shutdown()
+    
 # FastAPI app
-app = FastAPI(title="Sports Pick'em API")
+app = FastAPI(title="Sports Pick'em API", lifespan=lifespan)
 
 # CORS middleware
 app.add_middleware(
@@ -540,17 +550,6 @@ async def schedule_pick_reminders():
 scheduler = BackgroundScheduler()
 scheduler.add_job(lambda: asyncio.run(process_email_notifications()), 'interval', minutes=10)
 scheduler.add_job(lambda: asyncio.run(schedule_pick_reminders()), 'interval', hours=6)
-
-# Startup and shutdown events
-@app.on_event("startup")
-async def startup():
-    await database.connect()
-    scheduler.start()
-
-@app.on_event("shutdown")
-async def shutdown():
-    await database.disconnect()
-    scheduler.shutdown()
 
 # Authentication endpoints
 @app.post("/token")
@@ -1595,5 +1594,6 @@ async def load_sports():
 
 # Add to scheduler
 scheduler.add_job(lambda: asyncio.run(update_sports_schedule()), 'interval', hours=12)
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080, timeout_keep_alive=120)
