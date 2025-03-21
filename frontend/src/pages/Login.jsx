@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   Container,
@@ -22,7 +22,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
 import SportsFootballIcon from '@mui/icons-material/SportsFootball';
-import apiService, { userService } from '../services/apiService';
+import { userService } from '../services/apiService';
 import { useAuth } from '../contexts/AuthContext';
 
 const Login = () => {
@@ -63,12 +63,9 @@ const Login = () => {
     setError('');
 
     try {
-      console.log(formData)
-      const response = await userService.login(formData.email, formData.password);
-
-      // Store the token and user info
-      await login(formData.email, formData.password);
-
+      // Use the login method from AuthContext which should handle both API call and state management
+      await login(formData.email, formData.password, formData.rememberMe);
+      
       // Redirect to the page user was trying to access or home
       navigate(from, { replace: true });
     } catch (error) {
