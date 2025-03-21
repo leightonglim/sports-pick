@@ -63,6 +63,7 @@ const Login = () => {
     setError('');
 
     try {
+      console.log(formData)
       const response = await userService.login(formData.email, formData.password);
 
       // Store the token and user info
