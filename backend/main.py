@@ -634,7 +634,7 @@ async def update_user(user_update: UserUpdate, current_user: dict = Depends(get_
         }
     }
 
-@app.post("/api/login")
+@app.post("/auth/login")
 async def login(user_login: UserLogin):
     user = await authenticate_user(user_login.username, user_login.password)
     if not user:
