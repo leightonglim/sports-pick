@@ -569,7 +569,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     return {"access_token": access_token, "token_type": "bearer"}
 
 # User endpoints
-@app.post("/api/users", status_code=status.HTTP_201_CREATED)
+@app.post("/auth/register", status_code=status.HTTP_201_CREATED)
 async def create_user(user: UserCreate):
     # Check if username or email already exists
     existing_user = await database.fetch_one(
