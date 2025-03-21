@@ -34,7 +34,7 @@ import {
 import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon, Person as PersonIcon, Sports as SportsIcon, ContentCopy as ContentCopyIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
-import { apiService } from '../services/apiService';
+import api, { leagueService } from '../services/apiService';
 
 const LeagueManagement = () => {
   const navigate = useNavigate();
@@ -65,7 +65,7 @@ const LeagueManagement = () => {
   useEffect(() => {
     const fetchLeagues = async () => {
       try {
-        const response = await api.get('/leagues/user');
+        const response = await leagueService.getLeagues();
         setLeagues(response.data);
         
         const sportsResponse = await api.get('/sports');
@@ -87,7 +87,7 @@ const LeagueManagement = () => {
 
   const handleCreateLeague = async () => {
     try {
-      const response = await api.post('/leagues', newLeague);
+      const response = await leagueService.createLeague(newLeague);
       setLeagues([...leagues, response.data]);
       setCreateDialogOpen(false);
       setSnackbar({
@@ -114,7 +114,7 @@ const LeagueManagement = () => {
 
   const handleJoinLeague = async () => {
     try {
-      const response = await api.post('/leagues/join', { inviteCode });
+      const response = await leagueService.joinLeague(inviteCode);
       setLeagues([...leagues, response.data]);
       setJoinDialogOpen(false);
       setInviteCode('');
@@ -135,7 +135,7 @@ const LeagueManagement = () => {
 
   const handleLeaveLeague = async (leagueId) => {
     try {
-      await api.post(`/leagues/${leagueId}/leave`);
+      await leagueService.leaveLeague(leagueId);
       setLeagues(leagues.filter(league => league.id !== leagueId));
       setSnackbar({
         open: true,
@@ -154,7 +154,7 @@ const LeagueManagement = () => {
 
   const handleEditLeague = async () => {
     try {
-      const response = await api.put(`/leagues/${selectedLeague.id}`, selectedLeague);
+      const response = await leagueService.updateLeague(selectedLeague.id, selectedLeague);
       setLeagues(leagues.map(league => 
         league.id === selectedLeague.id ? response.data : league
       ));
@@ -183,7 +183,7 @@ const LeagueManagement = () => {
     setSelectedLeague(league);
     setMembersDialogOpen(true);
     try {
-      const response = await api.get(`/leagues/${league.id}/members`);
+      const response = await leagueService.getLeagueMembers(league.id);
       setLeagueMembers(response.data);
     } catch (error) {
       console.error('Error fetching league members:', error);
@@ -223,7 +223,7 @@ const LeagueManagement = () => {
     if (!selectedSport) return;
     
     try {
-      await api.post(`/leagues/${selectedLeague.id}/sports`, { sportId: selectedSport });
+      await leagueService.addSportToLeague(selectedLeague.id, selectedSport);
       
       // Find the sport from available sports
       const sportToAdd = availableSports.find(sport => sport.id === selectedSport);
@@ -250,7 +250,7 @@ const LeagueManagement = () => {
 
   const handleRemoveSport = async (sportId) => {
     try {
-      await api.delete(`/leagues/${selectedLeague.id}/sports/${sportId}`);
+      await leagueService.removeSportFromLeague(selectedLeague.id, sportId);
       
       // Find the sport to remove
       const sportToRemove = leagueSports.find(sport => sport.id === sportId);

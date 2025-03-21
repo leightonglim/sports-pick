@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiService } from '../services/apiService';
+import { leagueService } from '../services/apiService';
 import {
   Container,
   Paper,
@@ -65,7 +65,8 @@ const LeagueJoin = () => {
   const fetchLeagues = async () => {
     try {
       setLoading(true);
-      const response = await apiService.get('/leagues/available');
+      // Using leagueService instead of apiService
+      const response = await leagueService.getLeagues();
       setLeagues(response.data);
     } catch (error) {
       console.error('Error fetching leagues:', error);
@@ -103,7 +104,8 @@ const LeagueJoin = () => {
 
   const handleJoinLeague = async () => {
     try {
-      await apiService.post(`/leagues/${joinDialog.league.id}/join`, {
+      // Using leagueService instead of apiService
+      await leagueService.joinLeague(joinDialog.league.id, {
         password: joinDialog.league.isPrivate ? joinDialog.password : undefined
       });
       
@@ -302,7 +304,12 @@ const LeagueJoin = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleJoinClose}>Cancel</Button>
-          <Button onClick={handleJoinLeague} variant="contained" color="primary">
+          <Button 
+            onClick={handleJoinLeague} 
+            variant="contained" 
+            color="primary"
+            disabled={joinDialog.league?.isPrivate && !joinDialog.password}
+          >
             Join
           </Button>
         </DialogActions>

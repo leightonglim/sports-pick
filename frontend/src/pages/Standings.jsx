@@ -22,7 +22,7 @@ import {
   useTheme 
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { apiService } from '../services/apiService';
+import api, { leagueService } from '../services/apiService';
 
 const Standings = () => {
   const { leagueId } = useParams();
@@ -40,7 +40,7 @@ const Standings = () => {
   useEffect(() => {
     const fetchUserLeagues = async () => {
       try {
-        const response = await api.get('/leagues/user');
+        const response = await leagueService.getLeagues();
         setLeagues(response.data);
         if (response.data.length > 0 && !selectedLeague) {
           setSelectedLeague(response.data[0].id);
@@ -58,7 +58,7 @@ const Standings = () => {
     if (selectedLeague) {
       const fetchLeagueInfo = async () => {
         try {
-          const response = await api.get(`/leagues/${selectedLeague}`);
+          const response = await leagueService.getLeague(selectedLeague);
           setLeagueInfo(response.data);
         } catch (error) {
           console.error('Error fetching league info:', error);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { apiService } from '../services/apiService';
+import { leagueService, picksService, gamesService } from '../services/apiService';
 import {
   Container,
   Paper,
@@ -84,7 +84,7 @@ const PastPicks = () => {
   const fetchLeagueData = async () => {
     try {
       setLoading(true);
-      const response = await apiService.get(`/leagues/${leagueId}`);
+      const response = await leagueService.getLeague(leagueId);
       setLeague(response.data);
       setError(null);
     } catch (error) {
@@ -97,7 +97,9 @@ const PastPicks = () => {
 
   const fetchAvailableSeasons = async () => {
     try {
-      const response = await apiService.get(`/games/${selectedSport}/seasons`);
+      // Assuming you have an endpoint in gamesService for getting seasons
+      // If not, you'll need to add this to your API service
+      const response = await gamesService.getSeasons(selectedSport);
       setAvailableSeasons(response.data);
       
       if (response.data.length > 0) {
@@ -112,7 +114,8 @@ const PastPicks = () => {
 
   const fetchAvailableWeeks = async () => {
     try {
-      const response = await apiService.get(`/games/${selectedSport}/${selectedSeason}/weeks`);
+      // Using the sportsService's getWeeks method would be more appropriate here
+      const response = await gamesService.getWeeks(selectedSport, selectedSeason);
       setAvailableWeeks(response.data);
       
       if (response.data.length > 0) {
@@ -128,7 +131,8 @@ const PastPicks = () => {
   const fetchPicks = async () => {
     try {
       setLoading(true);
-      const response = await apiService.get(`/picks/${leagueId}/${selectedSport}/${selectedSeason}/${selectedWeek}`);
+      // Using picksService instead of direct API call
+      const response = await picksService.getPastPicks(leagueId, selectedSport, selectedSeason, selectedWeek);
       setPicks(response.data);
       setError(null);
     } catch (error) {
