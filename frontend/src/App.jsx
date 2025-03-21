@@ -52,7 +52,7 @@ const App = () => {
   };
 
   return (
-     <ErrorBoundary>
+    //  <ErrorBoundary>
       <ThemeProvider theme={activeTheme}>
         <CssBaseline />
         <AuthProvider themeMode={{ useDarkTheme, toggleTheme }}>
@@ -113,7 +113,7 @@ const App = () => {
           </Router>
         </AuthProvider>
       </ThemeProvider>
-     </ErrorBoundary>
+    //  {/* </ErrorBoundary> */}
   );
 };
 
