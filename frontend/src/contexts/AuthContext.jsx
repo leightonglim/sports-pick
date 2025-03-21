@@ -6,7 +6,7 @@ const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children, themeMode }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,6 +30,20 @@ export const AuthProvider = ({ children }) => {
 
     checkAuth();
   }, []);
+
+  // Load user theme preference from localStorage if available
+  useEffect(() => {
+    if (themeMode && localStorage.getItem('theme') === 'dark') {
+      themeMode.setUseDarkTheme(true);
+    }
+  }, [themeMode]);
+
+  // Save theme preference when it changes
+  useEffect(() => {
+    if (themeMode) {
+      localStorage.setItem('theme', themeMode.useDarkTheme ? 'dark' : 'light');
+    }
+  }, [themeMode?.useDarkTheme]);
 
   const login = async (email, password) => {
     try {
@@ -86,6 +100,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateProfile,
+    themeMode, // Add themeMode to the context value
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
