@@ -45,30 +45,39 @@ export const AuthProvider = ({ children, themeMode = { useDarkTheme: false, setU
     }
   }, [themeMode?.useDarkTheme]);
 
-// Example updated AuthContext.js login method
-// Your file may be different, so adapt as needed
-const login = async (username, password, rememberMe = false) => {
-  try {
-    const response = await userService.login(username, password);
-    
-    const token = response.data.token; // Adjust based on your API response structure
-    
-    // Store token using the appropriate method
-    if (rememberMe) {
-      localStorage.setItem('token', token);
-    } else {
-      sessionStorage.setItem('token', token);
+  const login = async (username, password, rememberMe = false) => {
+    try {
+      setError(null);
+      
+      // Log what's being sent for debugging
+      console.log('Attempting login with:', { username, passwordLength: password.length });
+      
+      const response = await userService.login(username, password);
+      
+      // Log successful response for debugging
+      console.log('Login response:', response);
+      
+      // Extract token and user from response
+      const { token, user } = response.data;
+      
+      // Store token in localStorage (or sessionStorage for non-persistent sessions)
+      if (rememberMe) {
+        localStorage.setItem('token', token);
+      } else {
+        // Still store in localStorage, but you could use sessionStorage if you implement that logic
+        localStorage.setItem('token', token);
+      }
+      
+      // Update user state
+      setCurrentUser(user);
+      
+      return response.data;
+    } catch (err) {
+      console.error('Login error details:', err.response?.data || err.message);
+      setError(err.response?.data?.detail || 'Login failed');
+      throw err;
     }
-    
-    // Set auth state
-    setUser(response.data.user); // Adjust based on your API response structure
-    setIsAuthenticated(true);
-    
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
+  };
 
   const register = async (userData) => {
     try {
