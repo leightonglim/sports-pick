@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { use } from 'react';
 import { 
   Box, 
   Button, 
@@ -12,7 +12,8 @@ import {
   CardMedia,
   Divider
 } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 // Importing icons safely
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
 import SportsFootballIcon from '@mui/icons-material/SportsFootball';
@@ -24,6 +25,15 @@ import InsightsIcon from '@mui/icons-material/Insights';
 
 // Added error handling for component rendering
 const LandingPage = () => {
+  const { currentUser, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && currentUser) {
+      navigate('/dashboard');
+    }
+  }, [loading, currentUser, navigate]);
+
   // Optional: Add error catching for date method
   const getCurrentYear = () => {
     try {
