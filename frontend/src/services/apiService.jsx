@@ -78,10 +78,10 @@ export const gamesService = {
 
 // Sports-related API calls
 export const sportsService = {
-  getSports: () => api.get('/sports'),
-  getSport: (id) => api.get(`/sports/${id}`),
-  getCurrentWeek: (sportId) => api.get(`/sports/${sportId}/current-week`),
-  getWeeks: (sportId) => api.get(`/sports/${sportId}/weeks`),
+  getSports: () => api.get('/api/sports'),
+  getSport: (id) => api.get(`/api/sports/${id}`),
+  getCurrentWeek: (sportId) => api.get(`/api/sports/${sportId}/current-week`),
+  getWeeks: (sportId) => api.get(`/api/sports/${sportId}/weeks`),
 };
 
 // Notifications-related API calls
