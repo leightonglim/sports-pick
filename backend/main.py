@@ -1517,7 +1517,7 @@ async def update_sports_schedule():
     for sport in sports_list:
         try:
             # Fetch current season and week info from ESPN API
-            espn_url = f"http://site.api.espn.com/apis/site/v2/sports/{sport['espn_id']}/scoreboard"
+            espn_url = f"http://site.api.espn.com/apis/site/v2/sports/{sport['api_endpoint']}/scoreboard"
             
             async with httpx.AsyncClient() as client:
                 response = await client.get(espn_url)
