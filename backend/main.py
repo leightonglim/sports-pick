@@ -974,7 +974,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
     # ESPN API endpoint (this is a simplified version, actual implementation would need proper API URL)
     for sport in sports:
         print(dict(sport))
-        espn_url = f"https://site.api.espn.com/apis/site/v2/sports/{sport["api_endpoint"]}/scoreboard"
+        espn_url = f"https://site.api.espn.com/apis/site/v2/sports/{sport['api_endpoint']}/scoreboard"
         # if sport['name'] == 'nfl' or sport['name'] == 'college-football':
         start_date = datetime.today().strftime("%Y%m%d")
         end_date = (datetime.today() + timedelta(days=7)).strftime('%Y%m%d')
