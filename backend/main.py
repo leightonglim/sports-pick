@@ -316,7 +316,7 @@ async def send_email(to_email: str, subject: str, html_content: str):
         print(f"Error sending email: {e}")
         return False
 
-def parse_timestamp_alt(game_time_str):
+def parse_timestamp_alt(timestamp_str):
     if not timestamp_str:
         return None
     
