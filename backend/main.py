@@ -988,7 +988,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(espn_url, params=params)
-                print(response)
+                print(response.json())
                 if response.status_code != 200:
                     raise HTTPException(
                         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
