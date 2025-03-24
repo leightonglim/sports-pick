@@ -317,13 +317,28 @@ async def send_email(to_email: str, subject: str, html_content: str):
         return False
 
 def parse_timestamp_alt(game_time_str):
-    if not game_time_str:
+    if not timestamp_str:
         return None
     
     try:
-        parsed_time = parser.isoparse(game_time_str)
-        return parsed_time.astimezone(timezone.utc)
-    except (ValueError, TypeError):
+        # First, ensure the timestamp is timezone-aware
+        if timestamp_str.endswith('Z'):
+            timestamp_str = timestamp_str.replace('Z', '+00:00')
+        
+        # Parse the timestamp
+        dt = datetime.fromisoformat(timestamp_str)
+        
+        # If the timestamp is naive, assume UTC
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        
+        # Convert to UTC
+        dt = dt.astimezone(timezone.utc)
+        
+        # Remove timezone info for asyncpg TIMESTAMP
+        return dt.replace(tzinfo=None)
+    
+    except ValueError:
         return None
 
 # Scheduled tasks
