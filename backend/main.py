@@ -976,7 +976,8 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
         # if sport['name'] == 'nfl' or sport['name'] == 'college-football':
         start_date = datetime.today().strftime("%Y%m%d")
         end_date = (datetime.today() + timedelta(days=7)).strftime('%Y%m%d')
-
+        dates = start_date + '-' + end_date
+        print(dates)
         params = {
             "dates": start_date + '-' + end_date,  # This is simplified, would need actual date format
             # "week": game_sync.week
@@ -985,6 +986,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(espn_url, params=params)
+                print(response)
                 if response.status_code != 200:
                     raise HTTPException(
                         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
