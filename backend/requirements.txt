@@ -14,3 +14,4 @@ asyncpg
 pydantic[email]
 python-multipart
 requests
+python-dateutil

@@ -21,6 +21,7 @@ from dotenv import load_dotenv
 import uvicorn
 import requests
 from contextlib import asynccontextmanager
+from dateutil import parser
 
 # Load environment variables
 load_dotenv()
@@ -314,6 +315,16 @@ async def send_email(to_email: str, subject: str, html_content: str):
     except Exception as e:
         print(f"Error sending email: {e}")
         return False
+
+def parse_timestamp_alt(game_time_str):
+    if not game_time_str:
+        return None
+    
+    try:
+        parsed_time = parser.isoparse(game_time_str)
+        return parsed_time.astimezone(timezone.utc)
+    except (ValueError, TypeError):
+        return None
 
 # Scheduled tasks
 async def process_email_notifications():
@@ -1021,7 +1032,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                     favorite = odds.get("details", "")
                     
                     game_time_str = event.get("date", "")
-                    game_time = datetime.fromisoformat(game_time_str.replace("Z", "+00:00")) if game_time_str else None
+                    game_time = parse_timestamp_alt(game_time_str)
                     
                     venue = competition.get("venue", {}).get("fullName", "")
                     status = event.get("status", {}).get("type", {}).get("name", "scheduled")
