@@ -187,7 +187,9 @@ games = sqlalchemy.Table(
     sqlalchemy.Column("season", sqlalchemy.Integer),
     sqlalchemy.Column("week", sqlalchemy.Integer),
     sqlalchemy.Column("status", sqlalchemy.String(20), default="scheduled"),
-    sqlalchemy.Column("last_updated", sqlalchemy.DateTime, default=datetime.utcnow)
+    sqlalchemy.Column("last_updated", sqlalchemy.DateTime, default=datetime.utcnow),
+    sqlalchemy.Column("start_date_range", sqlalchemy.Date),
+    sqlalchemy.Column("end_date_range", sqlalchemy.Date)
 )
 
 picks = sqlalchemy.Table(
@@ -1144,6 +1146,8 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                                 "season": season,
                                 "week": week,
                                 "status": status,
+                                "start_date_range": start_date,
+                                "end_date_range": end_date,
                             }
                         print(values)
                         await database.execute(
@@ -1151,11 +1155,11 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                             INSERT INTO games (
                                 sport_id, espn_game_id, home_team, away_team,
                                 home_team_score, away_team_score, spread, favorite,
-                                game_time, venue, season, week, status
+                                game_time, venue, season, week, status, start_date_range, end_date_range
                             ) VALUES (
                                 :sport_id, :espn_game_id, :home_team, :away_team,
                                 :home_score, :away_score, :spread, :favorite,
-                                :game_time, :venue, :season, :week, :status
+                                :game_time, :venue, :season, :week, :status, :start_date_range, :end_date_range
                             )
                             """,
                             values={
@@ -1172,6 +1176,8 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                                 "season": season,
                                 "week": week,
                                 "status": status,
+                                "start_date_range": start_date,
+                                "end_date_range": end_date,
                             }
                         )
                         games_synced += 1
