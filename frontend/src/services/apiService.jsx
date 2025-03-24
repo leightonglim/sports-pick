@@ -47,7 +47,7 @@ export const userService = {
 
 // League-related API calls
 export const leagueService = {
-  getLeagues: () => api.get('/leagues'),
+  getLeagues: () => api.get('/api/leagues'),
   getLeague: (id) => api.get(`/leagues/${id}`),
   createLeague: (data) => api.post('/leagues', data),
   updateLeague: (id, data) => api.put(`/leagues/${id}`, data),
