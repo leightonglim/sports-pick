@@ -144,10 +144,10 @@ sports = sqlalchemy.Table(
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
     sqlalchemy.Column("name", sqlalchemy.String(50)),
     sqlalchemy.Column("espn_id", sqlalchemy.Integer, unique=True),
-    sqlalchemy.Column("current_season", sqlalchemy.String(20)),
     sqlalchemy.Column("current_week", sqlalchemy.Integer),
     sqlalchemy.Column("link", sqlalchemy.Text),
-    sqlalchemy.Column("display_name", sqlalchemy.Text)
+    sqlalchemy.Column("display_name", sqlalchemy.Text),
+    sqlalchemy.Column("current_season", sqlalchemy.Integer),
 )
 
 league_sports = sqlalchemy.Table(
