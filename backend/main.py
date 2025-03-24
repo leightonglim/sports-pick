@@ -1118,7 +1118,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                                 "season": season,
                                 "week": week,
                                 "status": status,
-                                "now": datetime.utcnow()
+                                "now": datetime.datetime.now(tz=datetime.UTC)
                             }
                         print(values)
                         await database.execute(
@@ -1147,7 +1147,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                                 "season": season,
                                 "week": week,
                                 "status": status,
-                                "now": datetime.utcnow()
+                                "now": datetime.datetime.now(tz=datetime.UTC)
                             }
                         )
                         games_synced += 1
