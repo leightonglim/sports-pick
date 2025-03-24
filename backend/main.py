@@ -1110,7 +1110,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                                     """,
                                     values={
                                         "user_id": user["user_id"],
-                                        "now": datetime.now(timezone.utc)
+                                        "now": datetime.now(timezone.utc).replace(tzinfo=None)
                                     }
                                 )
                     else:
@@ -1129,7 +1129,6 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                                 "season": season,
                                 "week": week,
                                 "status": status,
-                                "now": datetime.now(timezone.utc)
                             }
                         print(values)
                         await database.execute(
@@ -1158,7 +1157,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                                 "season": season,
                                 "week": week,
                                 "status": status,
-                                "now": datetime.now(timezone.utc)
+                                "now": datetime.now(timezone.utc).replace(tzinfo=None)
                             }
                         )
                         games_synced += 1
