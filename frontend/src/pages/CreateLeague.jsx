@@ -151,11 +151,11 @@ const CreateLeague = () => {
   
       const leagueData = {
         name: formData.name,
-        description: formData.description || '', // Ensure description is always a string
-        tiebreaker_enabled: formData.enableTiebreaker,
-        sports: selectedSports,
-        is_private: formData.isPrivate || false,
-        password: formData.isPrivate ? (formData.password || '') : null
+        description: formData.description || null, // Use null for Optional fields if empty
+        tiebreaker_enabled: !!formData.enableTiebreaker, // Ensure boolean
+        sports: selectedSports.map(sport => Number(sport)), // Ensure integer list
+        is_private: !!formData.isPrivate, // Ensure boolean
+        password: formData.isPrivate ? (formData.password || null) : null // Use null for optional field
       };
   
       const response = await leagueService.createLeague(leagueData);
