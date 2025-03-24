@@ -976,7 +976,11 @@ async def update_league_sports(
 @app.get("/api/sports")
 async def get_sports():
     """Get list of all sports"""
-    query = sports.select()
+    query = """
+    SELECT *
+    FROM sports
+    WHERE accepts_date_range = TRUE
+    """
     all_sports = await database.fetch_all(query)
     return {"sports": [dict(sport) for sport in all_sports]}
 
