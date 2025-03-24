@@ -964,13 +964,13 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
         "SELECT * FROM sports"
     )
     if not sports:
-        print("HERE")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Sports not found"
         )
     games_synced = 0
     games_updated = 0
+    print(sports)
     # ESPN API endpoint (this is a simplified version, actual implementation would need proper API URL)
     for sport in sports:
         print(sport)
