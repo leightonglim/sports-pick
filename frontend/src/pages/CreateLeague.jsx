@@ -147,27 +147,27 @@ const CreateLeague = () => {
     try {
       const selectedSports = Object.entries(formData.sports)
         .filter(([_, selected]) => selected)
-        .map(([sport]) => sport);
-
+        .map(([sport]) => parseInt(sport)); // Ensure sport IDs are integers
+  
       const leagueData = {
         name: formData.name,
-        description: formData.description,
-        isPrivate: formData.isPrivate,
-        password: formData.isPrivate ? formData.password : undefined,
-        enableTiebreaker: formData.enableTiebreaker,
+        description: formData.description || '', // Ensure description is always a string
+        tiebreaker_enabled: formData.enableTiebreaker,
         sports: selectedSports,
+        is_private: formData.isPrivate || false,
+        password: formData.isPrivate ? (formData.password || '') : null
       };
-
+  
       const response = await leagueService.createLeague(leagueData);
-
+      
       setNotification({
         open: true,
-        message: 'League created successfully!',
+        message: `League created successfully! ${response.league.is_private ? 'Private' : 'Public'} League. Invite Code: ${response.league.invite_code}`,
         severity: 'success',
       });
-
+  
       setTimeout(() => {
-        navigate(`/leagues/${response.data.id}`);
+        navigate(`/leagues/${response.league.id}`);
       }, 1500);
     } catch (error) {
       console.error('Error creating league:', error);

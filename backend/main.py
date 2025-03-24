@@ -21,7 +21,8 @@ from dotenv import load_dotenv
 import uvicorn
 import requests
 from contextlib import asynccontextmanager
-from dateutil import parser
+import random
+
 
 # Load environment variables
 load_dotenv()
@@ -87,6 +88,8 @@ class LeagueCreate(BaseModel):
     description: Optional[str] = None
     tiebreaker_enabled: bool = False
     sports: List[int] = []
+    is_private: bool = False
+    password: Optional[str] = None
 
 class LeagueJoin(BaseModel):
     invite_code: str
@@ -135,6 +138,8 @@ leagues = sqlalchemy.Table(
     sqlalchemy.Column("created_by", sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id")),
     sqlalchemy.Column("tiebreaker_enabled", sqlalchemy.Boolean, default=False),
     sqlalchemy.Column("invite_code", sqlalchemy.String(20), unique=True),
+    sqlalchemy.Column("is_private", sqlalchemy.Boolean, default=False),
+    sqlalchemy.Column("password", sqlalchemy.String(255), nullable=True),
     sqlalchemy.Column("created_at", sqlalchemy.DateTime, default=datetime.utcnow),
     sqlalchemy.Column("updated_at", sqlalchemy.DateTime, default=datetime.utcnow)
 )
@@ -688,21 +693,22 @@ async def login(user_login: UserLogin):
     }
 
 # League endpoints
-@app.post("/api/leagues", status_code=status.HTTP_201_CREATED)
+@app.post("/api/create-league", status_code=status.HTTP_201_CREATED)
 async def create_league(league: LeagueCreate, current_user: dict = Depends(get_current_user)):
-    # Generate invite code
-    invite_code = str(uuid.uuid4())[:8]
+    # Generate invite code (more readable and secure)
+    invite_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
     
     async with database.transaction():
-        # Create league
+        # Create league with all details
         query = leagues.insert().values(
             name=league.name,
-            description=league.description,
+            description=league.description or '',
             created_by=current_user["id"],
             tiebreaker_enabled=league.tiebreaker_enabled,
-            invite_code=invite_code
+            invite_code=invite_code,
+            is_private=league.is_private,
+            password=league.password if league.is_private else None
         )
-        
         league_id = await database.execute(query)
         
         # Add creator as admin
@@ -711,10 +717,10 @@ async def create_league(league: LeagueCreate, current_user: dict = Depends(get_c
             user_id=current_user["id"],
             is_admin=True
         )
-        
         await database.execute(member_query)
         
         # Add sports to league
+        league_sports_data = []
         if league.sports:
             for sport_id in league.sports:
                 sport_query = league_sports.insert().values(
@@ -722,21 +728,49 @@ async def create_league(league: LeagueCreate, current_user: dict = Depends(get_c
                     sport_id=sport_id
                 )
                 await database.execute(sport_query)
-    
-    # Get created league
-    created_league = await database.fetch_one(
-        "SELECT * FROM leagues WHERE id = :id",
-        values={"id": league_id}
-    )
-    
-    return {
-        "message": "League created successfully",
-        "league": {
-            **created_league,
-            "sports": league.sports
+                league_sports_data.append(sport_id)
+        
+        # Fetch league details with sports and member count
+        created_league_query = """
+        SELECT 
+            l.id, 
+            l.name, 
+            l.description, 
+            l.invite_code,
+            l.is_private,
+            (SELECT COUNT(*) FROM league_members lm WHERE lm.league_id = l.id) as members,
+            (
+                SELECT json_agg(json_build_object(
+                    'id', s.id, 
+                    'name', s.name
+                ))
+                FROM league_sports ls
+                JOIN sports s ON s.id = ls.sport_id
+                WHERE ls.league_id = l.id
+            ) as sports
+        FROM leagues l
+        WHERE l.id = :id
+        """
+        
+        created_league = await database.fetch_one(
+            created_league_query,
+            values={"id": league_id}
+        )
+        
+        return {
+            "message": "League created successfully",
+            "league": {
+                "id": created_league['id'],
+                "name": created_league['name'],
+                "description": created_league['description'],
+                "invite_code": created_league['invite_code'],
+                "is_private": created_league['is_private'],
+                "members": created_league['members'],
+                "sports": created_league['sports'] or []
+            }
         }
-    }
 
+        
 @app.post("/api/leagues/join")
 async def join_league(league_join: LeagueJoin, current_user: dict = Depends(get_current_user)):
     # Find league by invite code
