@@ -62,7 +62,7 @@ const useFetchData = () => {
         );
 
         setData({
-          leagues: leaguesResponse.data,
+          leagues: leaguesResponse.data.leagues,
           activeSports: sportsWithWeeks.filter((sport) => sport.isActive),
         });
       } catch (err) {
