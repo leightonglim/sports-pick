@@ -984,7 +984,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
             "dates": start_date + '-' + end_date,  # This is simplified, would need actual date format
             # "week": game_sync.week
         }
-        
+        print(espn_url)
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(espn_url, params=params)
