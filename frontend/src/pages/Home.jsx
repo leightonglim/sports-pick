@@ -108,7 +108,11 @@ const Home = () => {
     );
   }
 
-  if (!loading && data.leagues.length === 0 && !error) {
+  // Ensure data exists and has correct properties
+  const leagues = data?.leagues || [];
+  const activeSports = data?.activeSports || [];
+
+  if (leagues.length === 0) {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" sx={{ mb: 4 }}>Welcome to Pick'em Pro!</Typography>
@@ -176,7 +180,7 @@ const Home = () => {
         Welcome back, {currentUser.firstName || currentUser.username}!
       </Typography>
       
-      {data.activeSports.length === 0 ? (
+      {activeSports.length === 0 ? (
         <Suspense fallback={<CircularProgress />}>
           <Alert severity="info" sx={{ mb: 4 }}>
             There are no active sports seasons at the moment. Check back later!
@@ -190,7 +194,7 @@ const Home = () => {
           </Typography>
           
           <Grid container spacing={3}>
-            {data.activeSports.map((sport) => (
+            {activeSports.map((sport) => (
               <Grid item xs={12} sm={6} md={4} lg={3} key={sport.id}>
                 <Suspense fallback={<CircularProgress />}>
                   <Card>
@@ -226,7 +230,7 @@ const Home = () => {
       <Box>
         <Typography variant="h5" gutterBottom>Your Leagues</Typography>
         <Grid container spacing={3}>
-          {data.leagues.map((league) => (
+          {leagues.map((league) => (
             <Grid item xs={12} sm={6} md={4} key={league.id}>
               <Suspense fallback={<CircularProgress />}>
                 <Card>
