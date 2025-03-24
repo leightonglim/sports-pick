@@ -1081,7 +1081,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                                 venue = :venue,
                                 season = :season,
                                 week = :week,
-                                status = :status,
+                                status = :status
                             WHERE espn_game_id = :espn_game_id
                             """,
                             values={
