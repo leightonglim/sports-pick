@@ -47,10 +47,10 @@ const useFetchData = () => {
           leagueService.getLeagues(),
           sportsService.getSports(),
         ]);
-        console.log(sportsResponse)
+        console.log(sportsResponse.data.sports)
 
         const sportsWithWeeks = await Promise.all(
-          sportsResponse.data.map(async (sport) => {
+          sportsResponse.data.sports.map(async (sport) => {
             const weekResponse = await sportsService.getCurrentWeek(sport.id);
             return {
               ...sport,
