@@ -1151,7 +1151,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                             INSERT INTO games (
                                 sport_id, espn_game_id, home_team, away_team,
                                 home_team_score, away_team_score, spread, favorite,
-                                game_time, venue, season, week, status, last_updated
+                                game_time, venue, season, week, status
                             ) VALUES (
                                 :sport_id, :espn_game_id, :home_team, :away_team,
                                 :home_score, :away_score, :spread, :favorite,
