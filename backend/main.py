@@ -978,10 +978,13 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
         # if sport['name'] == 'nfl' or sport['name'] == 'college-football':
         start_date = datetime.today().strftime("%Y%m%d")
         end_date = (datetime.today() + timedelta(days=7)).strftime('%Y%m%d')
-        dates = start_date + '-' + end_date
+        if sport['accepts_date_range'] == True:
+            dates = start_date + '-' + end_date
+        else:
+            continue
         print(dates)
         params = {
-            "dates": start_date + '-' + end_date,  # This is simplified, would need actual date format
+            "dates": dates,  # This is simplified, would need actual date format
             # "week": game_sync.week
         }
         print(espn_url)
