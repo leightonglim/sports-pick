@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr, Field
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import databases
 import sqlalchemy
 import jwt
@@ -1069,7 +1069,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                                 "season": season,
                                 "week": week,
                                 "status": status,
-                                "now": datetime.datetime.now(tz=datetime.UTC),
+                                "now": datetime.now(timezone.utc),
                                 "espn_game_id": espn_game_id
                             }
                         )
@@ -1099,7 +1099,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                                     """,
                                     values={
                                         "user_id": user["user_id"],
-                                        "now": datetime.datetime.now(tz=datetime.UTC)
+                                        "now": datetime.now(timezone.utc)
                                     }
                                 )
                     else:
@@ -1118,7 +1118,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                                 "season": season,
                                 "week": week,
                                 "status": status,
-                                "now": datetime.datetime.now(tz=datetime.UTC)
+                                "now": datetime.now(timezone.utc)
                             }
                         print(values)
                         await database.execute(
@@ -1147,7 +1147,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                                 "season": season,
                                 "week": week,
                                 "status": status,
-                                "now": datetime.datetime.now(tz=datetime.UTC)
+                                "now": datetime.now(timezone.utc)
                             }
                         )
                         games_synced += 1
