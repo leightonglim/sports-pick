@@ -1140,7 +1140,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                             ) VALUES (
                                 :sport_id, :espn_game_id, :home_team, :away_team,
                                 :home_score, :away_score, :spread, :favorite,
-                                :game_time, :venue, :season, :week, :status, :now
+                                :game_time, :venue, :season, :week, :status
                             )
                             """,
                             values={
@@ -1157,7 +1157,6 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                                 "season": season,
                                 "week": week,
                                 "status": status,
-                                "now": datetime.now(timezone.utc).replace(tzinfo=None)
                             }
                         )
                         games_synced += 1
