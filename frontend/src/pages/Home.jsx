@@ -64,6 +64,7 @@ const useFetchData = () => {
           activeSports: sportsWithWeeks.filter((sport) => sport.isActive),
         });
       } catch (err) {
+        console.error(err)
         setError('Failed to load data. Please try again later.');
       } finally {
         setLoading(false);
