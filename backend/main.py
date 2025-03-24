@@ -961,7 +961,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
     #     values={"id": game_sync.sport_id}
     # )
     sports = await database.fetch_all(
-        "SELECT * FROM sports"
+        "SELECT * FROM sports WHERE api_endpoint is not NULL"
     )
     if not sports:
         raise HTTPException(
