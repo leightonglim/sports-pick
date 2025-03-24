@@ -1573,6 +1573,60 @@ async def get_standings(
     
     return {"standings": [dict(standing) for standing in standings_data]}
 
+@app.get("/api/sports/{sport_id}/current-week")
+async def get_current_week_games(sport_id: int, current_user: dict = Depends(get_current_user)):
+    """
+    Retrieve all games for the current week of a specific sport.
+    
+    Args:
+        sport_id (int): The ID of the sport to get the current week games for
+        db (Session): Database session dependency
+    
+    Returns:
+        List[Dict]: A list of games for the current week
+    
+    Raises:
+        HTTPException: If no games are found or an error occurs
+    """
+    try:
+        # Get current date in YYYYMMDD format
+        current_date = datetime.now().strftime("%Y%m%d")
+        
+        # Query to find all games for the current week of the sport
+        query = """
+            SELECT *
+            FROM games
+            WHERE 
+                sport_id = :sport_id 
+                AND status = 'STATUS_SCHEDULED'
+                AND :current_date BETWEEN start_date_range AND end_date_range
+        """
+
+        # Execute the query
+        results = await database.fetch_all(query, values={
+            "sport_id": sport_id, 
+            "current_date": current_date
+        })
+        
+        # Check if any games were found
+        if not results:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"No current week games found for sport ID {sport_id}"
+            )
+        
+        # Convert results to list of dictionaries
+        current_week_games = [dict(row) for row in results]
+
+        return current_week_games
+    
+    except Exception as e:
+        # Log the error in a real application
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error retrieving current week games: {str(e)}"
+        )
+
 # Additional scheduled task to update sport seasons/weeks
 @app.get("/api/update_schedule")
 async def update_sports_schedule():
@@ -1611,6 +1665,7 @@ async def update_sports_schedule():
                         )
         except Exception as e:
             print(f"Error updating sport {sport['name']}: {str(e)}")
+
 ESPN_SPORTS_API = "https://site.api.espn.com/apis/site/v2/scoreboard/activeSports?v=1&editionKey=espn-en&lang=en&region=us"
 @app.post("/api/load_sports/")
 async def load_sports():
