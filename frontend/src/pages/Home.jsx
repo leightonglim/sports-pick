@@ -47,6 +47,7 @@ const useFetchData = () => {
           leagueService.getLeagues(),
           sportsService.getSports(),
         ]);
+        console.log(sportsResponse)
 
         const sportsWithWeeks = await Promise.all(
           sportsResponse.data.map(async (sport) => {

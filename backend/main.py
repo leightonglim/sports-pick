@@ -1509,6 +1509,7 @@ async def get_standings(
     return {"standings": [dict(standing) for standing in standings_data]}
 
 # Additional scheduled task to update sport seasons/weeks
+@app.get("/api/update_schedule")
 async def update_sports_schedule():
     """Periodically check ESPN API for updated seasons/weeks"""
     sports_list = await database.fetch_all("SELECT * FROM sports")
