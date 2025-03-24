@@ -1593,6 +1593,12 @@ async def load_sports():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
+@app.get("/api/keep-alive")
+async def keep_alive():
+    return {
+        "message": "ALIVE",
+        "code": "200"
+    }
 # Add to scheduler
 # scheduler.add_job(lambda: asyncio.run(update_sports_schedule()), 'interval', hours=12)
 
