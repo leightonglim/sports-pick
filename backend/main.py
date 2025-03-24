@@ -1018,7 +1018,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                     # Check for odds/spread
                     odds = competition.get("odds", [])[0] if competition.get("odds") else {}
                     spread = odds.get("spread", 0)
-                    favorite = odds.get("favorite", "")
+                    favorite = odds.get("details", "")
                     
                     game_time_str = event.get("date", "")
                     game_time = datetime.fromisoformat(game_time_str.replace("Z", "+00:00")) if game_time_str else None
@@ -1104,6 +1104,23 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                                 )
                     else:
                         # Insert new game
+                        values={
+                                "sport_id": sport['espn_id'],
+                                "espn_game_id": espn_game_id,
+                                "home_team": home_team,
+                                "away_team": away_team,
+                                "home_score": home_score,
+                                "away_score": away_score,
+                                "spread": spread,
+                                "favorite": favorite,
+                                "game_time": game_time,
+                                "venue": venue,
+                                "season": season,
+                                "week": week,
+                                "status": status,
+                                "now": datetime.utcnow()
+                            }
+                        print(values)
                         await database.execute(
                             """
                             INSERT INTO games (
