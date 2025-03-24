@@ -74,6 +74,7 @@ export const picksService = {
 export const gamesService = {
   getGames: (sportId, weekId) => api.get(`/games`, { params: { sportId, weekId } }),
   refreshGames: (sportId, weekId) => api.post(`/games/refresh`, { sportId, weekId }),
+  updateGames: () => api.post('/api/games/sync')
 };
 
 // Sports-related API calls

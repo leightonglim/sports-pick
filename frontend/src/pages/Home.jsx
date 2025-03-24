@@ -19,7 +19,7 @@ import SportsHockeyIcon from '@mui/icons-material/SportsHockey';
 import SportsBasketballIcon from '@mui/icons-material/SportsBasketball';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useAuth } from '../contexts/AuthContext';
-import { leagueService, sportsService, picksService } from '../services/apiService';
+import { leagueService, sportsService, picksService, gamesService } from '../services/apiService';
 
 const Card = lazy(() => import('@mui/material/Card'));
 const Alert = lazy(() => import('@mui/material/Alert'));
@@ -43,9 +43,10 @@ const useFetchData = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [leaguesResponse, sportsResponse] = await Promise.all([
+        const [leaguesResponse, sportsResponse, gamesResponse] = await Promise.all([
           leagueService.getLeagues(),
           sportsService.getSports(),
+          gamesService.updateGames(),
         ]);
         console.log(sportsResponse.data.sports)
 

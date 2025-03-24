@@ -953,197 +953,204 @@ async def get_sports():
     return {"sports": [dict(sport) for sport in all_sports]}
 
 @app.post("/api/games/sync")
-async def sync_games_from_espn(game_sync: GameSync, current_user: dict = Depends(get_current_user)):
+async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
     """Sync games for a sport from ESPN API"""
     # Get sport details
-    sport = await database.fetch_one(
-        "SELECT * FROM sports WHERE id = :id",
-        values={"id": game_sync.sport_id}
+    # sport = await database.fetch_one(
+    #     "SELECT * FROM sports WHERE id = :id",
+    #     values={"id": game_sync.sport_id}
+    # )
+    sports = await database.fetch_all(
+        "SELECT * FROM sports"
     )
-    if not sport:
+    if not sports:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Sport not found"
+            detail="Sports not found"
         )
-    
+    games_synced = 0
+    games_updated = 0
     # ESPN API endpoint (this is a simplified version, actual implementation would need proper API URL)
-    espn_url = f"https://site.api.espn.com/apis/site/v2/sports/{sport['espn_id']}/scoreboard"
-    params = {
-        "dates": game_sync.season,  # This is simplified, would need actual date format
-        "week": game_sync.week
-    }
-    
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(espn_url, params=params)
-            if response.status_code != 200:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=f"Error fetching from ESPN API: {response.text}"
-                )
-            
-            data = response.json()
-            events = data.get("events", [])
-            
-            games_synced = 0
-            games_updated = 0
-            
-            for event in events:
-                espn_game_id = event.get("id")
-                if not espn_game_id:
-                    continue
-                
-                competition = event.get("competitions", [])[0] if event.get("competitions") else None
-                if not competition:
-                    continue
-                
-                # Extract game data
-                home_team = competition.get("competitors", [])[0].get("team", {}).get("name", "")
-                away_team = competition.get("competitors", [])[1].get("team", {}).get("name", "")
-                
-                # Check for odds/spread
-                odds = competition.get("odds", [])[0] if competition.get("odds") else {}
-                spread = odds.get("spread", 0)
-                favorite = odds.get("favorite", "")
-                
-                game_time_str = event.get("date", "")
-                game_time = datetime.fromisoformat(game_time_str.replace("Z", "+00:00")) if game_time_str else None
-                
-                venue = competition.get("venue", {}).get("fullName", "")
-                status = event.get("status", {}).get("type", {}).get("name", "scheduled")
-                
-                home_score = competition.get("competitors", [])[0].get("score", 0)
-                away_score = competition.get("competitors", [])[1].get("score", 0)
-                
-                # Check if game exists
-                existing_game = await database.fetch_one(
-                    "SELECT * FROM games WHERE espn_game_id = :espn_game_id",
-                    values={"espn_game_id": espn_game_id}
-                )
-                
-                if existing_game:
-                    # Update existing game
-                    await database.execute(
-                        """
-                        UPDATE games
-                        SET home_team = :home_team,
-                            away_team = :away_team,
-                            home_team_score = :home_score,
-                            away_team_score = :away_score,
-                            spread = :spread,
-                            favorite = :favorite,
-                            game_time = :game_time,
-                            venue = :venue,
-                            season = :season,
-                            week = :week,
-                            status = :status,
-                            last_updated = :now
-                        WHERE espn_game_id = :espn_game_id
-                        """,
-                        values={
-                            "home_team": home_team,
-                            "away_team": away_team,
-                            "home_score": home_score,
-                            "away_score": away_score,
-                            "spread": spread,
-                            "favorite": favorite,
-                            "game_time": game_time,
-                            "venue": venue,
-                            "season": game_sync.season,
-                            "week": game_sync.week,
-                            "status": status,
-                            "now": datetime.utcnow(),
-                            "espn_game_id": espn_game_id
-                        }
+    for sport in sports:
+        espn_url = f"https://site.api.espn.com/apis/site/v2/sports/{sport['api_endpoint']}/scoreboard"
+        # if sport['name'] == 'nfl' or sport['name'] == 'college-football':
+        start_date = datetime.today().strftime("%Y%m%d")
+        end_date = (datetime.today() + timedelta(days=7)).strftime('%Y%m%d')
+
+        params = {
+            "dates": start_date + '-' + end_date,  # This is simplified, would need actual date format
+            # "week": game_sync.week
+        }
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(espn_url, params=params)
+                if response.status_code != 200:
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail=f"Error fetching from ESPN API: {response.text}"
                     )
-                    games_updated += 1
+                
+                data = response.json()
+                events = data.get("events", [])
+                
+                for event in events:
+                    espn_game_id = event.get("id")
+                    if not espn_game_id:
+                        continue
                     
-                    # Check if game details changed and there are picks for this game
-                    if (existing_game["game_time"] != game_time or 
-                        existing_game["venue"] != venue or
-                        existing_game["spread"] != spread):
-                        
-                        # Get users who picked this game
-                        users_with_picks = await database.fetch_all(
+                    competition = event.get("competitions", [])[0] if event.get("competitions") else None
+                    if not competition:
+                        continue
+                    
+                    # Extract game data
+                    home_team = competition.get("competitors", [])[0].get("team", {}).get("name", "")
+                    away_team = competition.get("competitors", [])[1].get("team", {}).get("name", "")
+                    
+                    # Check for odds/spread
+                    odds = competition.get("odds", [])[0] if competition.get("odds") else {}
+                    spread = odds.get("spread", 0)
+                    favorite = odds.get("favorite", "")
+                    
+                    game_time_str = event.get("date", "")
+                    game_time = datetime.fromisoformat(game_time_str.replace("Z", "+00:00")) if game_time_str else None
+                    
+                    venue = competition.get("venue", {}).get("fullName", "")
+                    status = event.get("status", {}).get("type", {}).get("name", "scheduled")
+                    
+                    home_score = competition.get("competitors", [])[0].get("score", 0)
+                    away_score = competition.get("competitors", [])[1].get("score", 0)
+                    
+                    # Check if game exists
+                    existing_game = await database.fetch_one(
+                        "SELECT * FROM games WHERE espn_game_id = :espn_game_id",
+                        values={"espn_game_id": espn_game_id}
+                    )
+                    
+                    if existing_game:
+                        # Update existing game
+                        await database.execute(
                             """
-                            SELECT DISTINCT user_id FROM picks
-                            WHERE game_id = :game_id
+                            UPDATE games
+                            SET home_team = :home_team,
+                                away_team = :away_team,
+                                home_team_score = :home_score,
+                                away_team_score = :away_score,
+                                spread = :spread,
+                                favorite = :favorite,
+                                game_time = :game_time,
+                                venue = :venue,
+                                season = :season,
+                                week = :week,
+                                status = :status,
+                                last_updated = :now
+                            WHERE espn_game_id = :espn_game_id
                             """,
-                            values={"game_id": existing_game["id"]}
+                            values={
+                                "home_team": home_team,
+                                "away_team": away_team,
+                                "home_score": home_score,
+                                "away_score": away_score,
+                                "spread": spread,
+                                "favorite": favorite,
+                                "game_time": game_time,
+                                "venue": venue,
+                                "season": game_sync.season,
+                                "week": game_sync.week,
+                                "status": status,
+                                "now": datetime.utcnow(),
+                                "espn_game_id": espn_game_id
+                            }
                         )
+                        games_updated += 1
                         
-                        # Schedule notifications for these users
-                        for user in users_with_picks:
-                            await database.execute(
+                        # Check if game details changed and there are picks for this game
+                        if (existing_game["game_time"] != game_time or 
+                            existing_game["venue"] != venue or
+                            existing_game["spread"] != spread):
+                            
+                            # Get users who picked this game
+                            users_with_picks = await database.fetch_all(
                                 """
-                                INSERT INTO email_notifications 
-                                (user_id, notification_type, scheduled_for)
-                                VALUES (:user_id, 'GAME_UPDATED', :now)
+                                SELECT DISTINCT user_id FROM picks
+                                WHERE game_id = :game_id
                                 """,
-                                values={
-                                    "user_id": user["user_id"],
-                                    "now": datetime.utcnow()
-                                }
+                                values={"game_id": existing_game["id"]}
                             )
-                else:
-                    # Insert new game
+                            
+                            # Schedule notifications for these users
+                            for user in users_with_picks:
+                                await database.execute(
+                                    """
+                                    INSERT INTO email_notifications 
+                                    (user_id, notification_type, scheduled_for)
+                                    VALUES (:user_id, 'GAME_UPDATED', :now)
+                                    """,
+                                    values={
+                                        "user_id": user["user_id"],
+                                        "now": datetime.utcnow()
+                                    }
+                                )
+                    else:
+                        # Insert new game
+                        await database.execute(
+                            """
+                            INSERT INTO games (
+                                sport_id, espn_game_id, home_team, away_team,
+                                home_team_score, away_team_score, spread, favorite,
+                                game_time, venue, season, week, status, last_updated
+                            ) VALUES (
+                                :sport_id, :espn_game_id, :home_team, :away_team,
+                                :home_score, :away_score, :spread, :favorite,
+                                :game_time, :venue, :season, :week, :status, :now
+                            )
+                            """,
+                            values={
+                                "sport_id": game_sync.sport_id,
+                                "espn_game_id": espn_game_id,
+                                "home_team": home_team,
+                                "away_team": away_team,
+                                "home_score": home_score,
+                                "away_score": away_score,
+                                "spread": spread,
+                                "favorite": favorite,
+                                "game_time": game_time,
+                                "venue": venue,
+                                "season": game_sync.season,
+                                "week": game_sync.week,
+                                "status": status,
+                                "now": datetime.utcnow()
+                            }
+                        )
+                        games_synced += 1
+                
+                # Update sport's current season and week if needed
+                if sport["current_season"] != game_sync.season or sport["current_week"] != game_sync.week:
                     await database.execute(
                         """
-                        INSERT INTO games (
-                            sport_id, espn_game_id, home_team, away_team,
-                            home_team_score, away_team_score, spread, favorite,
-                            game_time, venue, season, week, status, last_updated
-                        ) VALUES (
-                            :sport_id, :espn_game_id, :home_team, :away_team,
-                            :home_score, :away_score, :spread, :favorite,
-                            :game_time, :venue, :season, :week, :status, :now
-                        )
+                        UPDATE sports
+                        SET current_season = :season, current_week = :week
+                        WHERE id = :id
                         """,
                         values={
-                            "sport_id": game_sync.sport_id,
-                            "espn_game_id": espn_game_id,
-                            "home_team": home_team,
-                            "away_team": away_team,
-                            "home_score": home_score,
-                            "away_score": away_score,
-                            "spread": spread,
-                            "favorite": favorite,
-                            "game_time": game_time,
-                            "venue": venue,
                             "season": game_sync.season,
                             "week": game_sync.week,
-                            "status": status,
-                            "now": datetime.utcnow()
+                            "id": game_sync.sport_id
                         }
                     )
-                    games_synced += 1
             
-            # Update sport's current season and week if needed
-            if sport["current_season"] != game_sync.season or sport["current_week"] != game_sync.week:
-                await database.execute(
-                    """
-                    UPDATE sports
-                    SET current_season = :season, current_week = :week
-                    WHERE id = :id
-                    """,
-                    values={
-                        "season": game_sync.season,
-                        "week": game_sync.week,
-                        "id": game_sync.sport_id
-                    }
-                )
             
-            return {
+    
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error syncing games: {str(e)}"
+            )
+    return {
                 "message": "Games synced successfully",
                 "games_synced": games_synced,
                 "games_updated": games_updated
             }
-    
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error syncing games: {str(e)}"
-        )
 
 @app.get("/api/games")
 async def get_games(
