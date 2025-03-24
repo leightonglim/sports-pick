@@ -1,0 +1,39 @@
+name: Keep Render Alive
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/14 * * * *"
+
+jobs:
+  keep-alive-backend:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: API Request
+      run: |
+        code=`curl --write-out '%{http_code}' \
+        --output /dev/null \
+        --request GET \
+        --url 'https://sports-pick.onrender.com/api/keep-alive'`
+        echo "CODE=$(echo $code)" >> $GITHUB_ENV
+    - name: Read success/failure
+      run: |
+        echo ${{ env.CODE }}
+        if [ ${{ env.CODE }} !="200" ] 
+        then
+            echo "FAILURE"
+            exit 1
+        else
+            echo "SUCCESS" 
+        fi
+  keep-alive-frontend:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Ping frontend
+      run: |
+        RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://sports-pick-pssm.onrender.com/)
+        echo "Response Code: $RESPONSE"
