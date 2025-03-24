@@ -150,14 +150,16 @@ const CreateLeague = () => {
         .map(([sport]) => parseInt(sport)); // Ensure sport IDs are integers
   
       const leagueData = {
-        name: formData.name,
-        description: formData.description || null, // Use null for Optional fields if empty
-        tiebreaker_enabled: !!formData.enableTiebreaker, // Ensure boolean
-        sports: selectedSports.map(sport => Number(sport)), // Ensure integer list
-        is_private: !!formData.isPrivate, // Ensure boolean
-        password: formData.isPrivate ? (formData.password || null) : null // Use null for optional field
+        name: formData.name || '', // Ensure name is never undefined
+        description: formData.description || null, // Explicitly null for optional
+        tiebreaker_enabled: Boolean(formData.enableTiebreaker), // Explicit boolean conversion
+        sports: Array.isArray(selectedSports) 
+          ? selectedSports.map(sport => Number(sport)).filter(id => !isNaN(id)) 
+          : [], // Ensure integer array, filter out invalid numbers
+        is_private: Boolean(formData.isPrivate), // Explicit boolean conversion
+        password: formData.isPrivate && formData.password ? formData.password : null
       };
-  
+      console.log(leagueData)
       const response = await leagueService.createLeague(leagueData);
       
       setNotification({
