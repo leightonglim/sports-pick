@@ -964,6 +964,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
         "SELECT * FROM sports"
     )
     if not sports:
+        print("HERE")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Sports not found"
@@ -972,6 +973,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
     games_updated = 0
     # ESPN API endpoint (this is a simplified version, actual implementation would need proper API URL)
     for sport in sports:
+        print(sport)
         espn_url = f"https://site.api.espn.com/apis/site/v2/sports/{sport['api_endpoint']}/scoreboard"
         # if sport['name'] == 'nfl' or sport['name'] == 'college-football':
         start_date = datetime.today().strftime("%Y%m%d")
