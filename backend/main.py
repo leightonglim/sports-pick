@@ -994,6 +994,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                 data = response.json()
                 events = data.get("events", [])
                 
+                
                 for event in events:
                     espn_game_id = event.get("id")
                     if not espn_game_id:
@@ -1020,6 +1021,9 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                     
                     home_score = competition.get("competitors", [])[0].get("score", 0)
                     away_score = competition.get("competitors", [])[1].get("score", 0)
+                
+                    season = event.get("season", {}).get("year", 9999)
+                    week = event.get("week", {}).get("number", 9999)
                     
                     # Check if game exists
                     existing_game = await database.fetch_one(
@@ -1055,10 +1059,10 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                                 "favorite": favorite,
                                 "game_time": game_time,
                                 "venue": venue,
-                                "season": game_sync.season,
-                                "week": game_sync.week,
+                                "season": season,
+                                "week": week,
                                 "status": status,
-                                "now": datetime.utcnow(),
+                                "now": datetime.datetime.now(tz=datetime.UTC),
                                 "espn_game_id": espn_game_id
                             }
                         )
@@ -1088,7 +1092,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                                     """,
                                     values={
                                         "user_id": user["user_id"],
-                                        "now": datetime.utcnow()
+                                        "now": datetime.datetime.now(tz=datetime.UTC)
                                     }
                                 )
                     else:
@@ -1106,7 +1110,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                             )
                             """,
                             values={
-                                "sport_id": game_sync.sport_id,
+                                "sport_id": sport['espn_id'],
                                 "espn_game_id": espn_game_id,
                                 "home_team": home_team,
                                 "away_team": away_team,
@@ -1116,8 +1120,8 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                                 "favorite": favorite,
                                 "game_time": game_time,
                                 "venue": venue,
-                                "season": game_sync.season,
-                                "week": game_sync.week,
+                                "season": season,
+                                "week": week,
                                 "status": status,
                                 "now": datetime.utcnow()
                             }
@@ -1125,7 +1129,7 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                         games_synced += 1
                 
                 # Update sport's current season and week if needed
-                if sport["current_season"] != game_sync.season or sport["current_week"] != game_sync.week:
+                if sport["current_season"] != season or sport["current_week"] != week:
                     await database.execute(
                         """
                         UPDATE sports
@@ -1133,9 +1137,9 @@ async def sync_games_from_espn(current_user: dict = Depends(get_current_user)):
                         WHERE id = :id
                         """,
                         values={
-                            "season": game_sync.season,
-                            "week": game_sync.week,
-                            "id": game_sync.sport_id
+                            "season": season,
+                            "week": week,
+                            "id": sport['espn_id']
                         }
                     )
             
