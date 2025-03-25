@@ -94,25 +94,33 @@ const CreateLeague = () => {
   ];
 
   const validateStep = (step) => {
-    const newErrors = {};
-    
-    if (step === 0) {
-      if (!formData.name.trim()) {
-        newErrors.name = 'League name is required.';
-      }
-      if (formData.isPrivate && !formData.password.trim()) {
+  const newErrors = {};
+  
+  if (step === 0) {
+    if (!formData.name.trim()) {
+      newErrors.name = 'League name is required.';
+    }
+    if (formData.name.length > 50) {
+      newErrors.name = 'League name must be 50 characters or less.';
+    }
+    if (formData.isPrivate) {
+      if (!formData.password.trim()) {
         newErrors.password = 'Password is required for private leagues.';
       }
-    } else if (step === 1) {
-      const hasSports = Object.values(formData.sports).some(sport => sport);
-      if (!hasSports) {
-        newErrors.sports = 'Please select at least one sport.';
+      if (formData.password.length < 6) {
+        newErrors.password = 'Password must be at least 6 characters.';
       }
     }
+  } else if (step === 1) {
+    const hasSports = Object.values(formData.sports).some(sport => sport);
+    if (!hasSports) {
+      newErrors.sports = 'Please select at least one sport.';
+    }
+  }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
 
   const handleNext = () => {
     if (validateStep(activeStep)) {
@@ -143,45 +151,43 @@ const CreateLeague = () => {
   };
 
   const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      const selectedSports = Object.entries(formData.sports)
-        .filter(([_, selected]) => selected)
-        .map(([sport]) => parseInt(sport)); // Ensure sport IDs are integers
-  
-      const leagueData = {
-        name: formData.name || '', // Ensure name is never undefined
-        description: formData.description || null, // Explicitly null for optional
-        tiebreaker_enabled: Boolean(formData.enableTiebreaker), // Explicit boolean conversion
-        sports: Array.isArray(selectedSports) 
-          ? selectedSports.map(sport => Number(sport)).filter(id => !isNaN(id)) 
-          : [], // Ensure integer array, filter out invalid numbers
-        is_private: Boolean(formData.isPrivate), // Explicit boolean conversion
-        password: formData.isPrivate && formData.password ? formData.password : null
-      };
-      console.log(leagueData)
-      const response = await leagueService.createLeague(leagueData);
-      
-      setNotification({
-        open: true,
-        message: `League created successfully! ${response.league.is_private ? 'Private' : 'Public'} League. Invite Code: ${response.league.invite_code}`,
-        severity: 'success',
-      });
-  
-      setTimeout(() => {
-        navigate(`/leagues/${response.league.id}`);
-      }, 1500);
-    } catch (error) {
-      console.error('Error creating league:', error);
-      setNotification({
-        open: true,
-        message: error.response?.data?.message || 'Failed to create league',
-        severity: 'error',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    const selectedSportIds = Object.entries(formData.sports)
+      .filter(([_, selected]) => selected)
+      .map(([sportId]) => Number(sportId));
+
+    const leagueData = {
+      name: formData.name,
+      description: formData.description || null,
+      tiebreaker_enabled: formData.enableTiebreaker,
+      sports: selectedSportIds,
+      is_private: formData.isPrivate,
+      password: formData.isPrivate ? formData.password : null
+    };
+
+    const response = await leagueService.createLeague(leagueData);
+    
+    setNotification({
+      open: true,
+      message: `League created successfully! ${response.league.is_private ? 'Private' : 'Public'} League. Invite Code: ${response.league.invite_code}`,
+      severity: 'success',
+    });
+
+    setTimeout(() => {
+      navigate(`/leagues/${response.league.id}`);
+    }, 1500);
+  } catch (error) {
+    console.error('Error creating league:', error);
+    setNotification({
+      open: true,
+      message: error.response?.data?.message || 'Failed to create league',
+      severity: 'error',
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   const getStepContent = (step) => {
     switch (step) {
