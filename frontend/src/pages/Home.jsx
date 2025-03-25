@@ -52,20 +52,31 @@ const useFetchData = () => {
 
         const sportsWithWeeks = await Promise.all(
           sportsResponse.data.sports.map(async (sport) => {
-            const weekResponse = await sportsService.getCurrentWeek(sport.espn_id);
-            console.log(weekResponse)
-            return {
-              ...sport,
-              currentWeek: weekResponse.data.week,
-              isActive: weekResponse.data.isActive,
-            };
-          })
+            try {
+              const weekResponse = await sportsService.getCurrentWeek(sport.espn_id);
+              
+              return {
+                ...sport,
+                currentWeek: weekResponse.data.length > 0 
+                  ? 1  // Default to week 1 if there are games
+                  : null,
+                isActive: weekResponse.data.length > 0
+              };
+            } catch (error) {
+              console.error(`Error fetching week for sport ${sport.name}:`, error);
+              return {
+                ...sport,
+                currentWeek: null,
+                isActive: false
+              };
+          }
+        })
         );
         console.log(sportsWithWeeks)
 
         setData({
           leagues: leaguesResponse.data.leagues,
-          activeSports: sportsWithWeeks.filter((sport) => sport.isActive),
+          activeSports: sportsWithWeeks.filter((sport) => sport.currentWeek !== null),
         });
       } catch (err) {
         console.error(err)
@@ -182,7 +193,7 @@ const Home = () => {
         Welcome back, {currentUser.firstName || currentUser.username}!
       </Typography>
       
-      {activeSports.length === 0 ? (
+      {!activeSports || activeSports.length === 0 ? (
         <Suspense fallback={<CircularProgress />}>
           <Alert severity="info" sx={{ mb: 4 }}>
             There are no active sports seasons at the moment. Check back later!
@@ -226,7 +237,7 @@ const Home = () => {
           </Grid>
         </Box>
       )}
-      
+            
       <Divider sx={{ my: 4 }} />
       
       <Box>
