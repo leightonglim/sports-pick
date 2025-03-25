@@ -24,7 +24,7 @@ import { leagueService, picksService, gamesService, sportsService } from '../ser
 const Picks = () => {
   const { weekId } = useParams();
   const navigate = useNavigate();
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [weekData, setWeekData] = useState(null);
